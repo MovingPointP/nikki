@@ -24,7 +24,7 @@
 | UIフレームワーク | React + TypeScript |
 | Markdownエディタ | CodeMirror 6 |
 | Markdownレンダリング | react-markdown |
-| スタイリング | Tailwind CSS |
+| スタイリング | MUI (Material UI) |
 | 状態管理 | Zustand |
 | フロントマターパーサー | gray-matter |
 | ファイルI/O | @tauri-apps/plugin-fs |
