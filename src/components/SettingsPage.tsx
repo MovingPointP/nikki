@@ -92,7 +92,7 @@ export default function SettingsPage() {
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
-            disabled={!selectedPath}
+            disabled={!selectedPath || selectedPath === vaultPath}
           >
             {vaultPath ? "変更を保存" : "保存して開始"}
           </Button>
