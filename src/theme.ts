@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material/styles";
 
 const notoSans = '"Noto Sans JP", sans-serif';
-const contentFont = '"Playfair Display", "Noto Serif JP", serif';
+export const contentFont = '"Playfair Display", "Noto Serif JP", serif';
 
 const theme = createTheme({
   palette: {
@@ -26,12 +26,6 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: notoSans,
-    body1: {
-      fontFamily: contentFont,
-    },
-    body2: {
-      fontFamily: contentFont,
-    },
     button: {
       textTransform: "none", // テキストが自動的に大文字になるのを無効化
     },
