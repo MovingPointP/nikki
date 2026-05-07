@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { Box, CircularProgress } from "@mui/material";
 import { useSettingsStore } from "./store/settingsStore";
+import LoadingScreen from "./components/LoadingScreen";
 import SettingsPage from "./components/SettingsPage";
 
 function App() {
@@ -11,18 +11,7 @@ function App() {
   }, []);
 
   if (!isLoaded) {
-    return (
-      <Box
-        sx={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingScreen />;
   }
 
   if (!vaultPath) {
