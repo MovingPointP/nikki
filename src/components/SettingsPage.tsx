@@ -19,6 +19,8 @@ export default function SettingsPage() {
   const { vaultPath, setVaultPath } = useSettingsStore();
   // フォルダ選択後の一時保存パス
   const [selectedPath, setSelectedPath] = useState<string>(vaultPath ?? "");
+  // フォルダ選択ダイアログ表示中
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const [snackbar, setSnackbar] = useState<{ open: boolean; severity: "success" | "error"; message: string }>({
     open: false,
@@ -33,11 +35,14 @@ export default function SettingsPage() {
   // フォルダ選択ダイアログを表示
   // フォルダを選択した場合、一時保存パスに登録
   const handleSelectFolder = async () => {
+    setIsSelecting(true);
     try {
       const result = await open({ directory: true, multiple: false });
       if (result) setSelectedPath(result);
     } catch {
       setSnackbar({ open: true, severity: "error", message: "フォルダの選択に失敗しました" });
+    } finally {
+      setIsSelecting(false);
     }
   };
 
@@ -83,6 +88,7 @@ export default function SettingsPage() {
               variant="outlined"
               startIcon={<FolderOpenIcon />}
               onClick={handleSelectFolder}
+              disabled={isSelecting}
               sx={{ whiteSpace: "nowrap" }}
             >
               選択
