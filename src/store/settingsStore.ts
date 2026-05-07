@@ -7,7 +7,9 @@ const KEY_VAULT_PATH = "vaultPath";
 interface SettingsState {
   vaultPath: string | null;
   isLoaded: boolean;
+  // 設定ファイルからvaultPathを取得
   loadSettings: () => Promise<void>;
+  // 設定ファイルにvaultPathを登録
   setVaultPath: (path: string) => Promise<void>;
 }
 
