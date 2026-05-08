@@ -1,5 +1,11 @@
 import { createTheme } from "@mui/material/styles";
 
+declare module "@mui/material/styles" {
+  interface TypeText {
+    dark: string;
+  }
+}
+
 const notoSans = '"Noto Sans JP", sans-serif';
 export const contentFont = '"Playfair Display", "Noto Serif JP", serif';
 
@@ -22,6 +28,7 @@ const theme = createTheme({
     text: {
       primary: "#4B352A",
       secondary: "#7A5C47",
+      dark: "#F0F2BD",
     },
   },
   typography: {
