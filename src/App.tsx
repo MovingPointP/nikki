@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSettingsStore } from "./store/settingsStore";
 import LoadingScreen from "./components/LoadingScreen";
 import SettingsPage from "./components/SettingsPage";
+import MainLayout from "./components/MainLayout";
 
 function App() {
   const { vaultPath, isLoaded, loadSettings } = useSettingsStore();
@@ -18,7 +19,7 @@ function App() {
     return <SettingsPage />;
   }
 
-  return <div>メイン画面（今後実装）</div>;
+  return <MainLayout />;
 }
 
 export default App;
