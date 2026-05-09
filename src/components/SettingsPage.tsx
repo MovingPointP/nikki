@@ -15,10 +15,10 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useSettingsStore } from "../store/settingsStore";
 
 export default function SettingsPage() {
-  // 設定ファイルのvaultPath
-  const { vaultPath, setVaultPath } = useSettingsStore();
+  // 設定ファイルの保存パス
+  const { savePath, setSavePath } = useSettingsStore();
   // フォルダ選択後の一時保存パス
-  const [selectedPath, setSelectedPath] = useState<string>(vaultPath ?? "");
+  const [selectedPath, setSelectedPath] = useState<string>(savePath ?? "");
   // フォルダ選択ダイアログ表示中
   const [isSelecting, setIsSelecting] = useState(false);
 
@@ -29,8 +29,8 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    setSelectedPath(vaultPath ?? "");
-  }, [vaultPath]);
+    setSelectedPath(savePath ?? "");
+  }, [savePath]);
 
   // フォルダ選択ダイアログを表示
   // フォルダを選択した場合、一時保存パスに登録
@@ -46,11 +46,11 @@ export default function SettingsPage() {
     }
   };
 
-  // 一時保存パスを設定ファイルのvaultPathとして登録
+  // 一時保存パスを設定ファイルの保存パスとして登録
   const handleSave = async () => {
     if (!selectedPath) return;
     try {
-      await setVaultPath(selectedPath);
+      await setSavePath(selectedPath);
       setSnackbar({ open: true, severity: "success", message: "保存しました" });
     } catch {
       setSnackbar({ open: true, severity: "error", message: "保存に失敗しました" });
@@ -70,11 +70,10 @@ export default function SettingsPage() {
       <Paper sx={{ p: 4, width: 480 }} elevation={2}>
         <Stack spacing={3}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Vault フォルダの設定
+            保存フォルダの設定
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            日記ファイルを保存する Obsidian の Vault
-            フォルダを選択してください。
+            日記ファイルを保存するフォルダを選択してください。
           </Typography>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <TextField
@@ -98,9 +97,9 @@ export default function SettingsPage() {
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
-            disabled={!selectedPath || selectedPath === vaultPath}
+            disabled={!selectedPath || selectedPath === savePath}
           >
-            {vaultPath ? "変更を保存" : "保存して開始"}
+            {savePath ? "変更を保存" : "保存して開始"}
           </Button>
         </Stack>
       </Paper>

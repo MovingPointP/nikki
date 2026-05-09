@@ -5,7 +5,7 @@ import SettingsPage from "./components/SettingsPage";
 import MainLayout from "./components/MainLayout";
 
 function App() {
-  const { vaultPath, isLoaded, loadSettings } = useSettingsStore();
+  const { savePath, isLoaded, loadSettings } = useSettingsStore();
 
   useEffect(() => {
     loadSettings();
@@ -15,7 +15,7 @@ function App() {
     return <LoadingScreen />;
   }
 
-  if (!vaultPath) {
+  if (!savePath) {
     return <SettingsPage />;
   }
 

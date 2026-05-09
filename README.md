@@ -10,7 +10,7 @@
 | プラットフォーム | デスクトップ（Windows / Mac） |
 | フレームワーク | Tauri + React + TypeScript |
 | ストレージ | ローカルファイル（Markdown形式） |
-| Obsidian連携 | ObsidianのVault内にファイルを保存 |
+| Obsidian連携 | ObsidianのVault内にファイルを保存できる |
 
 ---
 
@@ -39,7 +39,8 @@
 
 ### 3-1. 日記ファイルの保存場所
 
-ObsidianのVault内に `diary/` フォルダを作成して保存する。
+`diary/` フォルダを作成して保存する。
+Obsidianと連携する場合はVault内にフォルダを作成する。
 
 ```
 例：~/Documents/MyVault/diary/
@@ -217,7 +218,7 @@ tags: []
 |------|------|
 | 対応OS | Windows / Mac 対応 |
 | データ保存 | すべてローカルファイル。外部サーバーへの通信なし |
-| Obsidian連携 | Vault内の `diary/` フォルダを参照。同時編集は非推奨 |
+| Obsidian連携 | Vault内の `diary/` フォルダを参照可能。同時編集は非推奨 |
 | パフォーマンス | 起動時ファイルリストスキャンは1回のみ。以降はメモリ参照 |
 | 文字コード | UTF-8 / 改行コード LF |
 | セキュリティ | `tauri.conf.json` でファイルシステムアクセスを最小権限に制限する |
