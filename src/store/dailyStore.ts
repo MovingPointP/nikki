@@ -67,7 +67,7 @@ function getSavePath(): string | null {
 function applyTemplate(template: string, date: string): string {
   // JST の 00:00:00 として解釈させることで UTC ずれを防ぐ
   const day = DAY_NAMES[new Date(`${date}T00:00:00+09:00`).getDay()];
-  return template.replace("{{date}}", date).replace("{{day}}", day);
+  return template.replace(/\{\{date\}\}/g, date).replace(/\{\{day\}\}/g, day);
 }
 
 // ────────────────────────────────────────────
