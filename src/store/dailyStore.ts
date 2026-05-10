@@ -35,6 +35,9 @@ interface DailyState {
   // ファイル読み込み中の場合 true
   isLoading: boolean;
 
+  // ファイル保存中の場合 true
+  isSaving: boolean;
+
   // 起動時に diary/ フォルダをスキャンして dateList を構築する
   scanDiaryFiles: () => Promise<void>;
 
@@ -77,6 +80,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
   content: "",
   isDirty: false,
   isLoading: false,
+  isSaving: false,
 
   // ── diary/ フォルダのスキャン ────────────────────────
   scanDiaryFiles: async () => {
@@ -112,17 +116,22 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
     set({ isLoading: true });
 
-    const fileExists = get().dateList.includes(date);
-    let content: string;
+    try {
+      const fileExists = get().dateList.includes(date);
+      let content: string;
 
-    if (fileExists) {
-      const filePath = await join(savePath, DIARY_DIR, `${date}.md`);
-      content = await readTextFile(filePath);
-    } else {
-      content = applyTemplate(DEFAULT_TEMPLATE, date);
+      if (fileExists) {
+        const filePath = await join(savePath, DIARY_DIR, `${date}.md`);
+        content = await readTextFile(filePath);
+      } else {
+        content = applyTemplate(DEFAULT_TEMPLATE, date);
+      }
+
+      set({ currentDate: date, content, isDirty: false, isLoading: false });
+    } catch (e) {
+      set({ isLoading: false });
+      throw e;
     }
-
-    set({ currentDate: date, content, isDirty: false, isLoading: false });
   },
 
   // ── エディタ入力の反映 ────────────────────────
@@ -136,18 +145,25 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     const { currentDate, content, dateList } = get();
     if (!savePath || !currentDate) return;
 
-    const diaryPath = await join(savePath, DIARY_DIR);
-    const filePath = await join(diaryPath, `${currentDate}.md`);
+    set({ isSaving: true });
 
-    // diary/ フォルダが存在しない場合に備えて作成する
-    await mkdir(diaryPath, { recursive: true });
-    await writeTextFile(filePath, content);
+    try {
+      const diaryPath = await join(savePath, DIARY_DIR);
+      const filePath = await join(diaryPath, `${currentDate}.md`);
 
-    // 新規作成の場合は dateList に追加してソートを維持する
-    if (!dateList.includes(currentDate)) {
-      set({ isDirty: false, dateList: [...dateList, currentDate].sort() });
-    } else {
-      set({ isDirty: false });
+      // diary/ フォルダが存在しない場合に備えて作成する
+      await mkdir(diaryPath, { recursive: true });
+      await writeTextFile(filePath, content);
+
+      // 新規作成の場合は dateList に追加してソートを維持する
+      if (!dateList.includes(currentDate)) {
+        set({ isSaving: false, isDirty: false, dateList: [...dateList, currentDate].sort() });
+      } else {
+        set({ isSaving: false, isDirty: false });
+      }
+    } catch (e) {
+      set({ isSaving: false });
+      throw e;
     }
   },
 
