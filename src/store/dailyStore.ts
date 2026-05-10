@@ -38,11 +38,10 @@ interface DailyState {
 
   // 指定日の日記を開く。ファイルがなければテンプレートを適用して新規状態にする
   openDiary: (date: string) => Promise<void>;
-}
 
-// ────────────────────────────────────────────
-// ストア
-// ────────────────────────────────────────────
+  // エディタの入力内容を更新し、未保存状態にする
+  setContent: (content: string) => void;
+}
 
 // ────────────────────────────────────────────
 // ユーティリティ
@@ -105,5 +104,10 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     }
 
     set({ currentDate: date, content, isDirty: false, isLoading: false });
+  },
+
+  // ── エディタ入力の反映 ────────────────────────
+  setContent: (content: string) => {
+    set({ content, isDirty: true });
   },
 }));
