@@ -84,7 +84,14 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     if (!savePath) return;
 
     const diaryPath = await join(savePath, DIARY_DIR);
-    const entries = await readDir(diaryPath);
+    // diary/ フォルダが未作成の場合（初回起動時など）は空リストで終了する
+    let entries;
+    try {
+      entries = await readDir(diaryPath);
+    } catch {
+      set({ dateList: [] });
+      return;
+    }
 
     const dates = entries
       .map((entry) => entry.name ?? "")
