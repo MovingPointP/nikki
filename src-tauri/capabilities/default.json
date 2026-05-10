@@ -10,6 +10,12 @@
     "store:allow-get",
     "store:allow-set",
     "store:allow-save",
-    "store:allow-load"
+    "store:allow-load",
+    { "identifier": "fs:allow-exists",        "allow": [{ "path": "$HOME/**" }] },
+    { "identifier": "fs:allow-read-dir",      "allow": [{ "path": "$HOME/**" }] },
+    { "identifier": "fs:allow-read-text-file","allow": [{ "path": "$HOME/**" }] },
+    { "identifier": "fs:allow-write-text-file","allow": [{ "path": "$HOME/**" }] },
+    { "identifier": "fs:allow-mkdir",         "allow": [{ "path": "$HOME/**" }] },
+    { "identifier": "fs:allow-remove",        "allow": [{ "path": "$HOME/**" }] }
   ]
 }
