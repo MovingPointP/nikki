@@ -62,7 +62,8 @@ function getSavePath(): string | null {
 
 // テンプレート文字列の {{date}} {{day}} を実際の値に展開する
 function applyTemplate(template: string, date: string): string {
-  const day = DAY_NAMES[new Date(date).getDay()];
+  // JST の 00:00:00 として解釈させることで UTC ずれを防ぐ
+  const day = DAY_NAMES[new Date(`${date}T00:00:00+09:00`).getDay()];
   return template.replace("{{date}}", date).replace("{{day}}", day);
 }
 
