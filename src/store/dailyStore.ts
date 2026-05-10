@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { readDir, readTextFile, writeTextFile, mkdir } from "@tauri-apps/plugin-fs";
+import { readDir, readTextFile, writeTextFile, mkdir, remove } from "@tauri-apps/plugin-fs";
 import { join } from "@tauri-apps/api/path";
 import { useSettingsStore } from "./settingsStore";
 import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
@@ -46,6 +46,9 @@ interface DailyState {
 
   // 現在の内容をファイルに保存する。新規の場合は dateList にも追加する
   saveDiary: () => Promise<void>;
+
+  // 指定日の日記を削除する。開いている場合はエディタもリセットする
+  deleteDiary: (date: string) => Promise<void>;
 }
 
 // ────────────────────────────────────────────
@@ -138,5 +141,23 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     } else {
       set({ isDirty: false });
     }
+  },
+
+  // ── 日記の削除 ────────────────────────
+  deleteDiary: async (date: string) => {
+    const savePath = getSavePath();
+    if (!savePath) return;
+
+    const filePath = await join(savePath, DIARY_DIR, `${date}.md`);
+    await remove(filePath);
+
+    const { currentDate, dateList } = get();
+
+    // 削除した日記を開いている場合はエディタをリセットする
+    const editorReset = currentDate === date
+      ? { currentDate: null, content: "", isDirty: false }
+      : {};
+
+    set({ dateList: dateList.filter((d) => d !== date), ...editorReset });
   },
 }));
