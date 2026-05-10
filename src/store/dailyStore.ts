@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { readDir, readTextFile } from "@tauri-apps/plugin-fs";
+import { readDir, readTextFile, writeTextFile, mkdir } from "@tauri-apps/plugin-fs";
 import { join } from "@tauri-apps/api/path";
 import { useSettingsStore } from "./settingsStore";
 import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
@@ -41,6 +41,9 @@ interface DailyState {
 
   // エディタの入力内容を更新し、未保存状態にする
   setContent: (content: string) => void;
+
+  // 現在の内容をファイルに保存する。新規の場合は dateList にも追加する
+  saveDiary: () => Promise<void>;
 }
 
 // ────────────────────────────────────────────
@@ -109,5 +112,26 @@ export const useDailyStore = create<DailyState>((set, get) => ({
   // ── エディタ入力の反映 ────────────────────────
   setContent: (content: string) => {
     set({ content, isDirty: true });
+  },
+
+  // ── 日記の保存 ────────────────────────
+  saveDiary: async () => {
+    const savePath = useSettingsStore.getState().savePath;
+    const { currentDate, content, dateList } = get();
+    if (!savePath || !currentDate) return;
+
+    const diaryPath = await join(savePath, DIARY_DIR);
+    const filePath = await join(diaryPath, `${currentDate}.md`);
+
+    // diary/ フォルダが存在しない場合に備えて作成する
+    await mkdir(diaryPath, { recursive: true });
+    await writeTextFile(filePath, content);
+
+    // 新規作成の場合は dateList に追加してソートを維持する
+    if (!dateList.includes(currentDate)) {
+      set({ isDirty: false, dateList: [...dateList, currentDate].sort() });
+    } else {
+      set({ isDirty: false });
+    }
   },
 }));
