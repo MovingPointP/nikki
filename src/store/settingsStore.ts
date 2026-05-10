@@ -38,10 +38,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
   // ── 設定の読み込み ────────────────────────
   loadSettings: async () => {
-    const store = await load(STORE_FILE, { autoSave: false, defaults: {} });
-    const savePath = await store.get<string>(KEY_SAVE_PATH);
-    // キーが存在しない場合は undefined が返るため null に統一する
-    set({ savePath: savePath ?? null, isLoaded: true });
+    try {
+      const store = await load(STORE_FILE, { autoSave: false, defaults: {} });
+      const savePath = await store.get<string>(KEY_SAVE_PATH);
+      // キーが存在しない場合は undefined が返るため null に統一する
+      set({ savePath: savePath ?? null, isLoaded: true });
+    } catch {
+      // 読み込み失敗時（初回起動・ファイル破損など）は未設定扱いで設定画面へ進める
+      set({ savePath: null, isLoaded: true });
+    }
   },
 
   // ── 保存パスの更新 ────────────────────────
