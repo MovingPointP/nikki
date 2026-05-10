@@ -1,13 +1,27 @@
 import { createTheme } from "@mui/material/styles";
 
+// ────────────────────────────────────────────
+// 型拡張
+// ────────────────────────────────────────────
+
 declare module "@mui/material/styles" {
   interface TypeText {
+    // MUI デフォルトにない dark を追加（primary.dark 背景上の文字色として使用）
     dark: string;
   }
 }
 
+// ────────────────────────────────────────────
+// フォント
+// ────────────────────────────────────────────
+
 const notoSans = '"Noto Sans JP", sans-serif';
+// CodeMirror など 特定の箇所で使うためエクスポートする
 export const contentFont = '"Playfair Display", "Noto Serif JP", serif';
+
+// ────────────────────────────────────────────
+// テーマ定義
+// ────────────────────────────────────────────
 
 const theme = createTheme({
   palette: {
