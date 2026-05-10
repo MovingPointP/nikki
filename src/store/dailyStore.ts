@@ -156,11 +156,10 @@ export const useDailyStore = create<DailyState>((set, get) => ({
       await writeTextFile(filePath, content);
 
       // 新規作成の場合は dateList に追加してソートを維持する
-      if (!dateList.includes(currentDate)) {
-        set({ isSaving: false, isDirty: false, dateList: [...dateList, currentDate].sort() });
-      } else {
-        set({ isSaving: false, isDirty: false });
-      }
+      const newDateList = dateList.includes(currentDate)
+        ? dateList
+        : [...dateList, currentDate].sort();
+      set({ isSaving: false, isDirty: false, dateList: newDateList });
     } catch (e) {
       set({ isSaving: false });
       throw e;
