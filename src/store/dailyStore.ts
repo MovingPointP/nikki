@@ -12,6 +12,8 @@ import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
 const DIARY_DIR = "diary";
 // 日記ファイル名のパターン（YYYY-MM-DD.md）
 const DIARY_FILE_PATTERN = /^\d{4}-\d{2}-\d{2}\.md$/;
+// 曜日名（Date.getDay() のインデックスに対応）
+const DAY_NAMES = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
 
 // ────────────────────────────────────────────
 // 型定義
@@ -50,7 +52,10 @@ interface DailyState {
 // ユーティリティ
 // ────────────────────────────────────────────
 
-const DAY_NAMES = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
+// settingsStore から保存パスを取得する
+function getSavePath(): string | null {
+  return useSettingsStore.getState().savePath;
+}
 
 // テンプレート文字列の {{date}} {{day}} を実際の値に展開する
 function applyTemplate(template: string, date: string): string {
@@ -71,7 +76,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
   // ── diary/ フォルダのスキャン ────────────────────────
   scanDiaryFiles: async () => {
-    const savePath = useSettingsStore.getState().savePath;
+    const savePath = getSavePath();
     // 保存フォルダ未設定の場合はスキャンしない
     if (!savePath) return;
 
@@ -91,7 +96,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
   // ── 日記を開く ────────────────────────
   openDiary: async (date: string) => {
-    const savePath = useSettingsStore.getState().savePath;
+    const savePath = getSavePath();
     if (!savePath) return;
 
     set({ isLoading: true });
@@ -116,7 +121,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
   // ── 日記の保存 ────────────────────────
   saveDiary: async () => {
-    const savePath = useSettingsStore.getState().savePath;
+    const savePath = getSavePath();
     const { currentDate, content, dateList } = get();
     if (!savePath || !currentDate) return;
 
