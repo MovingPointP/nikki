@@ -1,0 +1,82 @@
+import { useEffect, useRef } from "react";
+import { EditorView } from "@codemirror/view";
+import { EditorState } from "@codemirror/state";
+import { markdown } from "@codemirror/lang-markdown";
+import { Box, Typography } from "@mui/material";
+import { useDailyStore } from "../store/dailyStore";
+import { contentFont } from "../theme";
+
+// ────────────────────────────────────────────
+// 定数
+// ────────────────────────────────────────────
+
+const editorTheme = EditorView.theme({
+  // .cm-editor 本体のCSS
+  "&": { height: "100%", fontFamily: contentFont, fontSize: "1rem" },
+  ".cm-scroller": { overflow: "auto" },
+  ".cm-content": { padding: "16px" },
+  // フォーカス時のアウトラインを除去する（MUI の outline と二重にならないよう）
+  ".cm-focused": { outline: "none" },
+});
+
+// ────────────────────────────────────────────
+// コンポーネント
+// ────────────────────────────────────────────
+
+export default function EditorPane() {
+  const { content, currentDate } = useDailyStore();
+  // CodeMirror を差し込む DOM 要素への参照
+  const containerRef = useRef<HTMLDivElement>(null);
+  // CodeMirror インスタンスへの参照
+  const viewRef = useRef<EditorView | null>(null);
+
+  // ── エディタの初期化 ────────────────────────
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: content,
+        extensions: [
+          markdown(),
+          EditorView.lineWrapping,
+          editorTheme,
+        ],
+      }),
+      parent: containerRef.current,
+    });
+
+    viewRef.current = view;
+    return () => view.destroy();
+  }, []);
+
+  // ── 日記の日付切り替え時にエディタの内容を同期する ────────────────────────
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    const currentDoc = view.state.doc.toString();
+    // CodeMirror のテキストと content が異なる場合に実行
+    if (currentDoc !== content) {
+      // CodeMirror のテキストを content に更新
+      view.dispatch({
+        changes: { from: 0, to: currentDoc.length, insert: content },
+      });
+    }
+  }, [currentDate]);
+
+  return (
+    <Box sx={{ flex: 1, minHeight: 0, position: "relative", height: "100%", bgcolor: "background.paper", overflow: "hidden" }}>
+      {/* currentDate が null の間だけプレースホルダーをオーバーレイで表示する */}
+      {!currentDate && (
+        <Box sx={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
+          <Typography>
+            カレンダーから日付を選んでください
+          </Typography>
+        </Box>
+      )}
+      {/* containerRef は常にマウントしておくことで useEffect でのエディタ初期化を保証する */}
+      <Box ref={containerRef} sx={{ height: "100%" }} />
+    </Box>
+  );
+}

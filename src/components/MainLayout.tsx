@@ -1,4 +1,5 @@
 import { Box, Divider, Typography } from "@mui/material";
+import EditorPane from "./EditorPane";
 
 export default function MainLayout() {
   return (
@@ -22,19 +23,7 @@ export default function MainLayout() {
       <Divider orientation="vertical" flexItem />
 
       {/* エディタペイン */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: "background.paper",
-          overflow: "hidden",
-        }}
-      >
-        <Typography variant="subtitle2" sx={{ p: 2, color: "text.secondary" }}>
-          エディタ（未実装）
-        </Typography>
-      </Box>
+      <EditorPane />
 
       <Divider orientation="vertical" flexItem />
 
