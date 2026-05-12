@@ -24,7 +24,8 @@ const editorTheme = EditorView.theme({
 // ────────────────────────────────────────────
 
 export default function EditorPane() {
-  const { content, currentDate, setContent } = useDailyStore();
+  // content の更新で再レンダリングしないよう、セレクタで currentDate だけを購読する
+  const currentDate = useDailyStore((s) => s.currentDate);
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照
@@ -36,7 +37,7 @@ export default function EditorPane() {
 
     const view = new EditorView({
       state: EditorState.create({
-        doc: content,
+        doc: useDailyStore.getState().content,
         extensions: [
           markdown(),
           EditorView.lineWrapping,
@@ -44,7 +45,7 @@ export default function EditorPane() {
           // ドキュメントが変更されたときにストアの content を更新する
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {
-              setContent(update.state.doc.toString());
+              useDailyStore.getState().setContent(update.state.doc.toString());
             }
           }),
         ],
@@ -61,6 +62,7 @@ export default function EditorPane() {
     const view = viewRef.current;
     if (!view) return;
 
+    const content = useDailyStore.getState().content;
     const currentDoc = view.state.doc.toString();
     // CodeMirror のドキュメントとストアの content が異なる場合に実行
     if (currentDoc !== content) {

@@ -11,7 +11,7 @@ import MainLayout from "./components/MainLayout";
 //   savePath 設定済み → MainLayout
 function App() {
   const { savePath, isLoaded, loadSettings } = useSettingsStore();
-  const { scanDiaryFiles, openDiary } = useDailyStore();
+  const { scanDiaryFiles, openDiary } = useDailyStore.getState();
 
   // 起動時に設定ファイルから savePath を読み込む
   useEffect(() => {
