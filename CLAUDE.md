@@ -24,6 +24,29 @@
 
 ---
 
+## Zustand の使い方
+
+コンポーネントでストアを参照する際は、以下のルールに従うこと。
+
+| 用途 | 書き方 |
+|---|---|
+| JSX の表示に使う値 | `useStore((s) => s.xxx)` でセレクタ購読 |
+| アクション（関数） | `useStore.getState().xxx` で取得 |
+| エフェクト内で一度だけ読む値 | `useStore.getState().xxx` で取得 |
+
+セレクタなしの `useStore()` は使わない。ストア全体を購読することになり、関係のないフィールドの変化でも再レンダリングが発生する。
+
+```ts
+// NG
+const { savePath, setSavePath } = useSettingsStore();
+
+// OK
+const savePath = useSettingsStore((s) => s.savePath);
+const { setSavePath } = useSettingsStore.getState();
+```
+
+---
+
 ## コメントの扱い
 
 既存のコメントは勝手に削除しないこと。リファクタリングや変数名変更を行う際も、コメントを維持したまま内容を更新する。
