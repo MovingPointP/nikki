@@ -11,18 +11,21 @@ import MainLayout from "./components/MainLayout";
 //   savePath 設定済み → MainLayout
 function App() {
   const { savePath, isLoaded, loadSettings } = useSettingsStore();
-  const { scanDiaryFiles } = useDailyStore();
+  const { scanDiaryFiles, openDiary } = useDailyStore();
 
   // 起動時に設定ファイルから savePath を読み込む
   useEffect(() => {
     loadSettings();
   }, []);
 
-  // savePath が確定したらファイルスキャンを実行する
-  // 設定画面で savePath を新たに設定した場合にも再スキャンされる
+  // savePath が確定したらファイルスキャンを実行し、今日の日記を開く
+  // 設定画面で savePath を新たに設定した場合にも再スキャン・再オープンされる
   useEffect(() => {
     if (savePath) {
-      scanDiaryFiles();
+      // 本日の日付を YYYY-MM-DD 形式で初期化 
+      // sv-SE ロケールは YYYY-MM-DD 形式を返す
+      const dateStr = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Tokyo" }).format(new Date());
+      scanDiaryFiles().then(() => openDiary(dateStr));
     }
   }, [savePath]);
 
