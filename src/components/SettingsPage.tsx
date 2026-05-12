@@ -15,8 +15,10 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useSettingsStore } from "../store/settingsStore";
 
 export default function SettingsPage() {
-  // 設定ファイルの保存パス
-  const { savePath, setSavePath } = useSettingsStore();
+  // isLoaded の更新で再レンダリングしないよう、セレクタで savePath を購読する
+  const savePath = useSettingsStore((s) => s.savePath);
+  // setSavePath は getState で取得する
+  const { setSavePath } = useSettingsStore.getState();
   // フォルダ選択後の一時保存パス
   const [selectedPath, setSelectedPath] = useState<string>(savePath ?? "");
   // フォルダ選択ダイアログ表示中
