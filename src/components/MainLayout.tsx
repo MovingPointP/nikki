@@ -1,24 +1,13 @@
 import { Box, Divider, Typography } from "@mui/material";
 import EditorPane from "./EditorPane";
+import Sidebar from "./Sidebar";
 
 export default function MainLayout() {
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
 
       {/* サイドバー */}
-      <Box
-        sx={{
-          width: 240,
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: "primary.dark",
-          overflow: "auto",
-        }}
-      >
-        <Typography variant="subtitle2" sx={{ p: 2, color: "text.dark"}}>
-          サイドバー（未実装）
-        </Typography>
-      </Box>
+      <Sidebar />
 
       <Divider orientation="vertical" flexItem />
 
