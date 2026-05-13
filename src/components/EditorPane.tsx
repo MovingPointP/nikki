@@ -25,8 +25,9 @@ const editorTheme = EditorView.theme({
 // ────────────────────────────────────────────
 
 export default function EditorPane() {
-  // content の更新で再レンダリングしないよう、セレクタで currentDate だけを購読する
+  // content の更新で再レンダリングしないよう、セレクタで currentDate と isDirty だけを購読する
   const currentDate = useDailyStore((s) => s.currentDate);
+  const isDirty = useDailyStore((s) => s.isDirty);
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照
@@ -90,10 +91,15 @@ export default function EditorPane() {
   return (
     <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper", overflow: "hidden" }}>
       {/* 現在開いている日付を表示するヘッダーバー */}
-      <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "text.secondary" }}>
+      <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "text.secondary", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
           {currentDate ?? "—"}
         </Typography>
+        {isDirty && (
+          <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
+            未保存
+          </Typography>
+        )}
       </Box>
 
       <Box sx={{ flex: 1, minHeight: 0, position: "relative" }}>
