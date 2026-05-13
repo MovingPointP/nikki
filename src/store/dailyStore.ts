@@ -3,6 +3,7 @@ import { readDir, readTextFile, writeTextFile, mkdir, remove } from "@tauri-apps
 import { join } from "@tauri-apps/api/path";
 import { useSettingsStore } from "./settingsStore";
 import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
+import { getDayName } from "../utils/date";
 
 // ────────────────────────────────────────────
 // 定数
@@ -12,8 +13,6 @@ import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
 const DIARY_DIR = "diary";
 // 日記ファイル名のパターン（YYYY-MM-DD.md）
 const DIARY_FILE_PATTERN = /^\d{4}-\d{2}-\d{2}\.md$/;
-// 曜日名（Date.getDay() のインデックスに対応）
-const DAY_NAMES = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
 
 // ────────────────────────────────────────────
 // 型定義
@@ -65,8 +64,7 @@ function getSavePath(): string | null {
 
 // テンプレート文字列の {{date}} {{day}} を実際の値に展開する
 function applyTemplate(template: string, date: string): string {
-  // JST の 00:00:00 として解釈させることで UTC ずれを防ぐ
-  const day = DAY_NAMES[new Date(`${date}T00:00:00+09:00`).getDay()];
+  const day = getDayName(date);
   return template.replace(/\{\{date\}\}/g, date).replace(/\{\{day\}\}/g, day);
 }
 
