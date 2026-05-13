@@ -11,6 +11,7 @@ import { contentFont } from "../theme";
 // 定数
 // ────────────────────────────────────────────
 
+// ── エディタテーマ ────────────────────────
 const editorTheme = EditorView.theme({
   // .cm-editor 本体のCSS
   "&": { height: "100%", fontFamily: contentFont, fontSize: "1rem" },
@@ -19,6 +20,32 @@ const editorTheme = EditorView.theme({
   // フォーカス時のアウトラインを除去する（MUI の outline と二重にならないよう）
   ".cm-focused": { outline: "none" },
 });
+
+// ── エディタ拡張 ────────────────────────
+const editorExtensions = [
+  markdown(),
+  EditorView.lineWrapping,
+  editorTheme,
+  // Ctrl+Z/Ctrl+Y での undo/redo を有効にする
+  history(),
+  keymap.of([
+    // Ctrl+S で日記を保存する
+    {
+      key: "Mod-s",
+      run: () => { useDailyStore.getState().saveDiary(); return true; },
+    },
+    // 履歴操作キー
+    ...historyKeymap,
+    // カーソル移動・選択・削除などの標準テキスト編集キー
+    ...defaultKeymap,
+  ]),
+  // ドキュメントが変更されたときにストアの content を更新する
+  EditorView.updateListener.of((update) => {
+    if (update.docChanged) {
+      useDailyStore.getState().setContent(update.state.doc.toString());
+    }
+  }),
+];
 
 // ────────────────────────────────────────────
 // コンポーネント
@@ -40,30 +67,7 @@ export default function EditorPane() {
     const view = new EditorView({
       state: EditorState.create({
         doc: useDailyStore.getState().content,
-        extensions: [
-          markdown(),
-          EditorView.lineWrapping,
-          editorTheme,
-          // Ctrl+Z/Ctrl+Y での undo/redo を有効にする
-          history(),
-          keymap.of([
-            // Ctrl+S で日記を保存する
-            {
-              key: "Mod-s",
-              run: () => { useDailyStore.getState().saveDiary(); return true; },
-            },
-            // 履歴操作キー
-            ...historyKeymap,
-            // カーソル移動・選択・削除などの標準テキスト編集キー
-            ...defaultKeymap,
-          ]),
-          // ドキュメントが変更されたときにストアの content を更新する
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              useDailyStore.getState().setContent(update.state.doc.toString());
-            }
-          }),
-        ],
+        extensions: editorExtensions,
       }),
       parent: containerRef.current,
     });
