@@ -11,6 +11,13 @@ const STORE_FILE = "settings.json";
 const KEY_SAVE_PATH = "savePath";
 
 // ────────────────────────────────────────────
+// ユーティリティ
+// ────────────────────────────────────────────
+
+// autoSave: false のため、読み書きのたびに明示的に save() を呼ぶ必要がある
+const openStore = () => load(STORE_FILE, { autoSave: false, defaults: {} });
+
+// ────────────────────────────────────────────
 // 型定義
 // ────────────────────────────────────────────
 
@@ -39,7 +46,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   // ── 設定の読み込み ────────────────────────
   loadSettings: async () => {
     try {
-      const store = await load(STORE_FILE, { autoSave: false, defaults: {} });
+      const store = await openStore();
       const savePath = await store.get<string>(KEY_SAVE_PATH);
       // キーが存在しない場合は undefined が返るため null に統一する
       set({ savePath: savePath ?? null, isLoaded: true });
@@ -51,7 +58,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
   // ── 保存パスの更新 ────────────────────────
   setSavePath: async (path: string) => {
-    const store = await load(STORE_FILE, { autoSave: false, defaults: {} });
+    const store = await openStore();
     await store.set(KEY_SAVE_PATH, path);
     // autoSave: false のため明示的に save() を呼ぶ必要がある
     await store.save();

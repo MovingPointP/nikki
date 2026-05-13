@@ -34,6 +34,8 @@ export default function SettingsPage() {
     setSelectedPath(savePath ?? "");
   }, [savePath]);
 
+  const handleCloseSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
+
   // フォルダ選択ダイアログを表示
   // フォルダを選択した場合、一時保存パスに登録
   const handleSelectFolder = async () => {
@@ -109,11 +111,11 @@ export default function SettingsPage() {
         open={snackbar.open}
         // 3秒後に自動的に非表示
         autoHideDuration={3000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        onClose={handleCloseSnackbar}
 
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
+        <Alert severity={snackbar.severity} onClose={handleCloseSnackbar}>
           {snackbar.message}
         </Alert>
       </Snackbar>
