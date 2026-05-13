@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { Box, Typography } from "@mui/material";
 import { useDailyStore } from "../store/dailyStore";
 import { contentFont } from "../theme";
@@ -42,6 +43,19 @@ export default function EditorPane() {
           markdown(),
           EditorView.lineWrapping,
           editorTheme,
+          // Ctrl+Z/Ctrl+Y での undo/redo を有効にする
+          history(),
+          keymap.of([
+            // Ctrl+S で日記を保存する
+            {
+              key: "Mod-s",
+              run: () => { useDailyStore.getState().saveDiary(); return true; },
+            },
+            // 履歴操作キー
+            ...historyKeymap,
+            // カーソル移動・選択・削除などの標準テキスト編集キー
+            ...defaultKeymap,
+          ]),
           // ドキュメントが変更されたときにストアの content を更新する
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {
