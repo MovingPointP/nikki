@@ -88,17 +88,26 @@ export default function EditorPane() {
   }, [currentDate]);
 
   return (
-    <Box sx={{ flex: 1, minHeight: 0, position: "relative", height: "100%", bgcolor: "background.paper", overflow: "hidden" }}>
-      {/* currentDate が null の間だけプレースホルダーをオーバーレイで表示する */}
-      {!currentDate && (
-        <Box sx={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
-          <Typography>
-            カレンダーから日付を選んでください
-          </Typography>
-        </Box>
-      )}
-      {/* containerRef は常にマウントしておくことで useEffect でのエディタ初期化を保証する */}
-      <Box ref={containerRef} sx={{ height: "100%" }} />
+    <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper", overflow: "hidden" }}>
+      {/* 現在開いている日付を表示するヘッダーバー */}
+      <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "text.secondary" }}>
+        <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
+          {currentDate ?? "—"}
+        </Typography>
+      </Box>
+
+      <Box sx={{ flex: 1, minHeight: 0, position: "relative" }}>
+        {/* currentDate が null の間だけプレースホルダーをオーバーレイで表示する */}
+        {!currentDate && (
+          <Box sx={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
+            <Typography>
+              カレンダーから日付を選んでください
+            </Typography>
+          </Box>
+        )}
+        {/* containerRef は常にマウントしておくことで useEffect でのエディタ初期化を保証する */}
+        <Box ref={containerRef} sx={{ height: "100%" }} />
+      </Box>
     </Box>
   );
 }
