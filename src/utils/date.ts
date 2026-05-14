@@ -1,19 +1,11 @@
-// ────────────────────────────────────────────
-// 定数
-// ────────────────────────────────────────────
-
-// インスタンス生成はロケール解決のコストがかかるため、モジュールロード時に1度だけ作成してキャッシュする
-const FORMATTERS = {
-  short: new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", weekday: "narrow" }),
-  long:  new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", weekday: "long"   }),
-} as const;
+import { WEEKDAY_NAMES } from "../constants/weekdays";
 
 // ────────────────────────────────────────────
 // ユーティリティ
 // ────────────────────────────────────────────
 
-// YYYY-MM-DD 文字列から曜日名を JST で返す
-// "short" → "月"（narrow）、"long" → "月曜日"
-export function getDayName(dateStr: string, format: "short" | "long" = "long"): string {
-  return FORMATTERS[format].format(new Date(dateStr));
+// YYYY-MM-DD 文字列から曜日名を返す（例: "月"）
+export function getDayName(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return WEEKDAY_NAMES[new Date(year, month - 1, day).getDay()];
 }
