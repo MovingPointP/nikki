@@ -22,8 +22,8 @@ export default function Sidebar() {
   return (
     <Box sx={{ width: 48, display: "flex", flexDirection: "column", bgcolor: "primary.dark", overflow: "hidden" }}>
 
-      {/* カレンダーボタン（モーダルは未実装） */}
-      <IconButton sx={iconButtonSx}>
+      {/* カレンダーボタン */}
+      <IconButton sx={iconButtonSx} onClick={() => useModalStore.getState().openModal("calendar")}>
         <CalendarMonthIcon sx={{ fontSize: 28 }} />
       </IconButton>
 

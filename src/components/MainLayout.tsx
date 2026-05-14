@@ -2,6 +2,7 @@ import { Box, Divider, Typography } from "@mui/material";
 import EditorPane from "./EditorPane";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
+import CalendarModal from "./CalendarModal";
 
 export default function MainLayout() {
   return (
@@ -11,6 +12,7 @@ export default function MainLayout() {
       <Sidebar />
 
       <SettingsModal />
+      <CalendarModal />
 
       <Divider orientation="vertical" flexItem />
 
