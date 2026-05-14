@@ -1,6 +1,7 @@
 import { Box, IconButton } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import SettingsIcon from "@mui/icons-material/Settings";
+import { useModalStore } from "../store/modalStore";
 
 // ────────────────────────────────────────────
 // 定数
@@ -26,8 +27,8 @@ export default function Sidebar() {
         <CalendarMonthIcon sx={{ fontSize: 28 }} />
       </IconButton>
 
-      {/* 設定ボタン（設定画面への遷移は未実装） */}
-      <IconButton sx={{ ...iconButtonSx, mt: "auto" }}>
+      {/* 設定ボタン */}
+      <IconButton sx={{ ...iconButtonSx, mt: "auto" }} onClick={() => useModalStore.getState().openModal("settings")}>
         <SettingsIcon sx={{ fontSize: 28 }} />
       </IconButton>
 
