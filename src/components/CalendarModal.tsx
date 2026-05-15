@@ -3,6 +3,7 @@ import { Box, Dialog, DialogContent, IconButton, Typography } from "@mui/materia
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useModalStore } from "../store/modalStore";
+import { useDailyStore } from "../store/dailyStore";
 import { WEEKDAY_NAMES } from "../constants/weekdays";
 
 // ────────────────────────────────────────────
@@ -81,7 +82,9 @@ export default function CalendarModal() {
               key={day}
               variant="caption"
               sx={{
-                py: 0.5,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontWeight: "bold",
                 color: i === 0 ? "primary.main"
                      : i === 6 ? "secondary.main"
@@ -96,8 +99,24 @@ export default function CalendarModal() {
           {days.map((day, idx) => {
             const col = idx % 7; // 0=日, 6=土
             return (
-              <Box key={idx} sx={{ py: 0.5 }}>
-                {day !== null && (
+              <Box
+                key={idx}
+                onClick={() => {
+                  if (!day) return;
+                  const dateStr = `${viewYear}-${String(viewMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                  useDailyStore.getState().openDiary(dateStr);
+                  useModalStore.getState().closeModal();
+                }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 1,
+                  cursor: day ? "pointer" : "default",
+                  "&:hover": day ? { bgcolor: "action.hover" } : undefined,
+                }}
+              >
+                {day && (
                   <Typography
                     variant="body2"
                     sx={{
