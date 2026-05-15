@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useSettingsStore } from "./store/settingsStore";
 import { useDailyStore } from "./store/dailyStore";
+import { toDateString } from "./utils/date";
 import LoadingScreen from "./components/LoadingScreen";
 import SettingsPage from "./components/SettingsPage";
 import MainLayout from "./components/MainLayout";
@@ -31,9 +32,8 @@ function App() {
   // 設定画面で savePath を新たに設定した場合にも再スキャン・再オープンされる
   useEffect(() => {
     if (savePath) {
-      // 本日の日付を YYYY-MM-DD 形式で初期化 
-      // sv-SE ロケールは YYYY-MM-DD 形式を返す
-      const dateStr = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Tokyo" }).format(new Date());
+      // 本日の日付を YYYY-MM-DD 形式で初期化
+      const dateStr = toDateString(new Date());
       scanDiaryFiles().then(() => openDiary(dateStr));
     }
   }, [savePath]);
