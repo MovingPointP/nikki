@@ -1,4 +1,7 @@
-import { Box, Dialog, DialogContent, Typography } from "@mui/material";
+import { useState } from "react";
+import { Box, Dialog, DialogContent, IconButton, Typography } from "@mui/material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useModalStore } from "../store/modalStore";
 import { WEEKDAY_NAMES } from "../constants/weekdays";
 
@@ -27,9 +30,21 @@ export default function CalendarModal() {
   const open = useModalStore((s) => s.activeModal === "calendar");
 
   const today = new Date();
-  const year  = today.getFullYear();
-  const month = today.getMonth() + 1;
-  const days  = buildCalendarDays(year, month);
+  const [viewYear,  setViewYear]  = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth() + 1);
+
+  const days = buildCalendarDays(viewYear, viewMonth);
+
+  // ── 月移動 ────────────────────────
+  const goToPrevMonth = () => {
+    if (viewMonth === 1) { setViewYear((y) => y - 1); setViewMonth(12); }
+    else                 { setViewMonth((m) => m - 1); }
+  };
+
+  const goToNextMonth = () => {
+    if (viewMonth === 12) { setViewYear((y) => y + 1); setViewMonth(1); }
+    else                  { setViewMonth((m) => m + 1); }
+  };
 
   return (
     <Dialog
@@ -41,12 +56,19 @@ export default function CalendarModal() {
       <DialogContent>
 
         {/* ── ヘッダー ────────────────────────── */}
-        <Typography
-          variant="h6"
-          sx={{ textAlign: "center", fontWeight: "bold", mb: 1, color: "text.primary" }}
-        >
-          {year}年 {month}月
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+          <IconButton onClick={goToPrevMonth} size="small">
+            <ChevronLeftIcon />
+          </IconButton>
+
+          <Typography variant="h6" sx={{ fontWeight: "bold", color: "text.primary" }}>
+            {viewYear}年 {viewMonth}月
+          </Typography>
+
+          <IconButton onClick={goToNextMonth} size="small">
+            <ChevronRightIcon />
+          </IconButton>
+        </Box>
 
         {/* ── カレンダーグリッド ────────────────── */}
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", textAlign: "center" }}>
