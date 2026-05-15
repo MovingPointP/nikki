@@ -30,13 +30,22 @@ function buildCalendarDays(year: number, month: number): (number | null)[] {
 // ────────────────────────────────────────────
 
 export default function CalendarModal() {
-  const open = useModalStore((s) => s.activeModal === "calendar");
+  const open     = useModalStore((s) => s.activeModal === "calendar");
+  const dateList = useDailyStore((s) => s.dateList);
 
   const today = new Date();
   const [viewYear,  setViewYear]  = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1);
 
   const days = buildCalendarDays(viewYear, viewMonth);
+
+  // 表示中の月に日記が存在する日の集合
+  const monthPrefix = `${viewYear}-${String(viewMonth).padStart(2, "0")}-`;
+  const daysWithDiary = new Set(
+    dateList
+      .filter((d) => d.startsWith(monthPrefix))
+      .map((d) => parseInt(d.slice(8), 10))
+  );
 
   // ── 月移動 ────────────────────────
   const goToPrevMonth = () => {
@@ -109,6 +118,7 @@ export default function CalendarModal() {
                 }}
                 sx={{
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: 1,
@@ -117,16 +127,28 @@ export default function CalendarModal() {
                 }}
               >
                 {day && (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: col === 0 ? "primary.main"
-                           : col === 6 ? "secondary.main"
-                           : "text.primary",
-                    }}
-                  >
-                    {day}
-                  </Typography>
+                  <>
+                    {/* 日付 */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: col === 0 ? "primary.main"
+                             : col === 6 ? "secondary.main"
+                             : "text.primary",
+                      }}
+                    >
+                      {day}
+                    </Typography>
+                    {/* 日記が存在する日付のドット */}
+                    <Box
+                      sx={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        bgcolor: daysWithDiary.has(day) ? "primary.main" : "transparent",
+                      }}
+                    />
+                  </>
                 )}
               </Box>
             );
