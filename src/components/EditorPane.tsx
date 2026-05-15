@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { EditorView, keymap } from "@codemirror/view";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Transaction } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { Box, Typography } from "@mui/material";
@@ -40,8 +40,9 @@ const editorExtensions = [
     ...defaultKeymap,
   ]),
   // ドキュメントが変更されたときにストアの content を更新する
+  // Transaction.remote がマークされた書き換えは除外する
   EditorView.updateListener.of((update) => {
-    if (update.docChanged) {
+    if (update.docChanged && !update.transactions.some((t) => t.annotation(Transaction.remote))) {
       useDailyStore.getState().setContent(update.state.doc.toString());
     }
   }),
@@ -88,6 +89,8 @@ export default function EditorPane() {
       // CodeMirror のドキュメントを content に更新
       view.dispatch({
         changes: { from: 0, to: currentDoc.length, insert: content },
+        // プログラムによる書き換えとしてマークする
+        annotations: Transaction.remote.of(true),
       });
     }
   }, [currentDate]);
