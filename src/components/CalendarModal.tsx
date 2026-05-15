@@ -19,6 +19,8 @@ function buildCalendarDays(year: number, month: number): (number | null)[] {
   // 月の1日目までの曜日分だけ空セルを先頭に挿入
   for (let i = 0; i < firstDay; i++) days.push(null);
   for (let d = 1; d <= daysInMonth; d++) days.push(d);
+  // 常に6行（42セル）になるよう末尾を null で埋めてグリッドの高さを固定する
+  while (days.length < 42) days.push(null);
   return days;
 }
 
@@ -71,7 +73,7 @@ export default function CalendarModal() {
         </Box>
 
         {/* ── カレンダーグリッド ────────────────── */}
-        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", textAlign: "center" }}>
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gridAutoRows: "2rem", textAlign: "center" }}>
 
           {/* 曜日ヘッダー */}
           {WEEKDAY_NAMES.map((day, i) => (
