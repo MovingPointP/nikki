@@ -41,7 +41,7 @@ interface DailyState {
   scanDiaryFiles: () => Promise<void>;
 
   // 指定日の日記を開く。ファイルがなければテンプレートを適用して新規状態にする
-  openDiary: (date: string) => Promise<void>;
+  openDiary: (dateStr: string) => Promise<void>;
 
   // エディタの入力内容を更新し、未保存状態にする
   setContent: (content: string) => void;
@@ -50,7 +50,7 @@ interface DailyState {
   saveDiary: () => Promise<void>;
 
   // 指定日の日記を削除する。開いている場合はエディタもリセットする
-  deleteDiary: (date: string) => Promise<void>;
+  deleteDiary: (dateStr: string) => Promise<void>;
 }
 
 // ────────────────────────────────────────────
@@ -63,9 +63,9 @@ function getSavePath(): string | null {
 }
 
 // テンプレート文字列の {{date}} {{day}} を実際の値に展開する
-function applyTemplate(template: string, date: string): string {
-  const day = getDayName(date);
-  return template.replace(/\{\{date\}\}/g, date).replace(/\{\{day\}\}/g, day);
+function applyTemplate(template: string, dateStr: string): string {
+  const day = getDayName(dateStr);
+  return template.replace(/\{\{date\}\}/g, dateStr).replace(/\{\{day\}\}/g, day);
 }
 
 // ────────────────────────────────────────────
@@ -108,24 +108,24 @@ export const useDailyStore = create<DailyState>((set, get) => ({
   },
 
   // ── 日記を開く ────────────────────────
-  openDiary: async (date: string) => {
+  openDiary: async (dateStr: string) => {
     const savePath = getSavePath();
     if (!savePath) return;
 
     set({ isLoading: true });
 
     try {
-      const fileExists = get().dateList.includes(date);
+      const fileExists = get().dateList.includes(dateStr);
       let content: string;
 
       if (fileExists) {
-        const filePath = await join(savePath, DIARY_DIR, `${date}.md`);
+        const filePath = await join(savePath, DIARY_DIR, `${dateStr}.md`);
         content = await readTextFile(filePath);
       } else {
-        content = applyTemplate(DEFAULT_TEMPLATE, date);
+        content = applyTemplate(DEFAULT_TEMPLATE, dateStr);
       }
 
-      set({ currentDate: date, content, isDirty: false, isLoading: false });
+      set({ currentDate: dateStr, content, isDirty: false, isLoading: false });
     } catch (e) {
       set({ isLoading: false });
       throw e;
@@ -165,20 +165,20 @@ export const useDailyStore = create<DailyState>((set, get) => ({
   },
 
   // ── 日記の削除 ────────────────────────
-  deleteDiary: async (date: string) => {
+  deleteDiary: async (dateStr: string) => {
     const savePath = getSavePath();
     if (!savePath) return;
 
-    const filePath = await join(savePath, DIARY_DIR, `${date}.md`);
+    const filePath = await join(savePath, DIARY_DIR, `${dateStr}.md`);
     await remove(filePath);
 
     const { currentDate, dateList } = get();
 
     // 削除した日記を開いている場合はエディタをリセットする
-    const editorReset = currentDate === date
+    const editorReset = currentDate === dateStr
       ? { currentDate: null, content: "", isDirty: false }
       : {};
 
-    set({ dateList: dateList.filter((d) => d !== date), ...editorReset });
+    set({ dateList: dateList.filter((d) => d !== dateStr), ...editorReset });
   },
 }));
