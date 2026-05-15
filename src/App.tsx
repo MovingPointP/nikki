@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useSettingsStore } from "./store/settingsStore";
 import { useDailyStore } from "./store/dailyStore";
 import LoadingScreen from "./components/LoadingScreen";
@@ -10,13 +11,21 @@ import MainLayout from "./components/MainLayout";
 //   savePath 未設定 → SettingsPage（初回セットアップ）
 //   savePath 設定済み → MainLayout
 function App() {
-  const { savePath, isLoaded, loadSettings } = useSettingsStore();
+  const isLoaded = useSettingsStore((s) => s.isLoaded);
+  const savePath = useSettingsStore((s) => s.savePath);
   const { scanDiaryFiles, openDiary } = useDailyStore.getState();
 
   // 起動時に設定ファイルから savePath を読み込む
   useEffect(() => {
-    loadSettings();
+    useSettingsStore.getState().loadSettings();
   }, []);
+
+  // 設定読み込み完了後にウィンドウを表示する（起動時のちらつきを防ぐ）
+  useEffect(() => {
+    if (isLoaded) {
+      getCurrentWindow().show();
+    }
+  }, [isLoaded]);
 
   // savePath が確定したらファイルスキャンを実行し、今日の日記を開く
   // 設定画面で savePath を新たに設定した場合にも再スキャン・再オープンされる
