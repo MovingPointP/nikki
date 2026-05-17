@@ -26,7 +26,6 @@
 | Markdownレンダリング | react-markdown |
 | スタイリング | MUI (Material UI) |
 | 状態管理 | Zustand |
-| フロントマターパーサー | gray-matter |
 | ファイルI/O | @tauri-apps/plugin-fs |
 | ダイアログ | @tauri-apps/plugin-dialog |
 | 設定永続化 | @tauri-apps/plugin-store |
@@ -233,7 +232,7 @@ tags: []
 - ロジック・ユーティリティ関数を対象とする
 - テスト対象の例：
   - テンプレート変数の展開処理（`{{date}}`、`{{day}}`）
-  - フロントマターのパース・シリアライズ
+  - フロントマターの除去処理
   - 日付処理（ファイル名からの日付変換など）
 
 ### 8-2. E2Eテスト（WebDriver + tauri-driver）
