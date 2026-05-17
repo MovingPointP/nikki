@@ -8,7 +8,26 @@
   </head>
 
   <body style="margin:0;background-color:#F0F2BD">
-    <div id="root"></div>
+    <style>
+      #static-loading {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #static-loading span {
+        width: 40px;
+        height: 40px;
+        border: 3.6px solid rgba(202,120,66,0.3);
+        border-top-color: #CA7842;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <div id="root">
+      <div id="static-loading"><span></span></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
