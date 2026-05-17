@@ -5,7 +5,7 @@ import { markdown } from "@codemirror/lang-markdown";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { Box, Typography } from "@mui/material";
 import { useDailyStore } from "../store/dailyStore";
-import { contentFont } from "../theme";
+import { uiFont } from "../theme";
 
 // ────────────────────────────────────────────
 // 定数
@@ -14,7 +14,7 @@ import { contentFont } from "../theme";
 // ── エディタテーマ ────────────────────────
 const editorTheme = EditorView.theme({
   // .cm-editor 本体のCSS
-  "&": { height: "100%", fontFamily: contentFont, fontSize: "1rem" },
+  "&": { height: "100%", fontFamily: uiFont, fontSize: "1rem" },
   ".cm-scroller": { overflow: "auto" },
   ".cm-content": { padding: "16px" },
   // フォーカス時のアウトラインを除去する（MUI の outline と二重にならないよう）

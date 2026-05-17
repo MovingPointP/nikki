@@ -15,9 +15,9 @@ declare module "@mui/material/styles" {
 // フォント
 // ────────────────────────────────────────────
 
-const notoSans = '"Noto Sans JP", sans-serif';
-// CodeMirror など 特定の箇所で使うためエクスポートする
-export const contentFont = '"Playfair Display", "Noto Serif JP", serif';
+// CodeMirror など MUI テーマを継承できない箇所で明示指定するためエクスポートする
+export const uiFont = '"Noto Sans JP", sans-serif';
+const notoSans = uiFont;
 
 // ────────────────────────────────────────────
 // テーマ定義
