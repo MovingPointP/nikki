@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useSettingsStore } from "./store/settingsStore";
 import { useDailyStore } from "./store/dailyStore";
 import { toDateString } from "./utils/date";
@@ -21,14 +20,7 @@ function App() {
     useSettingsStore.getState().loadSettings();
   }, []);
 
-  // 設定読み込み完了後にウィンドウを表示する（起動時のちらつきを防ぐ）
-  useEffect(() => {
-    if (isLoaded) {
-      getCurrentWindow().show();
-    }
-  }, [isLoaded]);
-
-  // savePath が確定したらファイルスキャンを実行し、今日の日記を開く
+// savePath が確定したらファイルスキャンを実行し、今日の日記を開く
   // 設定画面で savePath を新たに設定した場合にも再スキャン・再オープンされる
   useEffect(() => {
     if (savePath) {
