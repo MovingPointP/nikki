@@ -1,5 +1,6 @@
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Divider } from "@mui/material";
 import EditorPane from "./EditorPane";
+import PreviewPane from "./PreviewPane";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
 import CalendarModal from "./CalendarModal";
@@ -22,19 +23,7 @@ export default function MainLayout() {
       <Divider orientation="vertical" flexItem />
 
       {/* プレビューペイン */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: "background.paper",
-          overflow: "auto",
-        }}
-      >
-        <Typography variant="subtitle2" sx={{ p: 2, color: "text.secondary" }}>
-          プレビュー（未実装）
-        </Typography>
-      </Box>
+      <PreviewPane />
 
     </Box>
   );
