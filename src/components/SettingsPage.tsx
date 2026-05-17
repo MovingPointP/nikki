@@ -9,7 +9,7 @@ export default function SettingsPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "background.default",
+        bgcolor: "background.paper",
       }}
     >
       <Paper sx={{ p: 4, width: 480 }} elevation={2}>
