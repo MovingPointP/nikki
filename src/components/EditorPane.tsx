@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EditorView, keymap } from "@codemirror/view";
 import { EditorState, Transaction } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useDailyStore } from "../store/dailyStore";
 import { uiFont } from "../theme";
 
@@ -56,7 +57,12 @@ const editorExtensions = [
 export default function EditorPane() {
   // content の更新で再レンダリングしないよう、セレクタで currentDate と isDirty だけを購読する
   const currentDate = useDailyStore((s) => s.currentDate);
-  const isDirty = useDailyStore((s) => s.isDirty);
+  const isDirty     = useDailyStore((s) => s.isDirty);
+  const dateList    = useDailyStore((s) => s.dateList);
+  // ディスク上に日記ファイルが存在する場合のみ削除ボタンを有効にする
+  const diaryExists = currentDate !== null && dateList.includes(currentDate);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照
@@ -113,21 +119,58 @@ export default function EditorPane() {
           )}
         </Box>
 
-        {/* 右：保存ボタン */}
-        <Tooltip title="保存 (Ctrl+S)">
-          <Box component="span" sx={{ display: "flex" }}>
-            <IconButton
-              size="small"
-              disabled={!currentDate}
-              onClick={() => useDailyStore.getState().saveDiary()}
-              sx={{ p: 0 }}
-            >
-              <SaveIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        </Tooltip>
+        {/* 右：保存・削除ボタン */}
+        <Box sx={{ display: "flex", gap: 1 }}>
+
+          <Tooltip title="保存 (Ctrl+S)">
+            {/* span をインライン要素のまま使うと行ボックス高さが加算されるため flex にする */}
+            <Box component="span" sx={{ display: "flex" }}>
+              <IconButton
+                size="small"
+                disabled={!currentDate}
+                onClick={() => useDailyStore.getState().saveDiary()}
+                sx={{ p: 0 }}
+              >
+                <SaveIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Tooltip>
+
+          <Tooltip title="削除">
+            <Box component="span" sx={{ display: "flex" }}>
+              <IconButton
+                size="small"
+                disabled={!diaryExists}
+                onClick={() => setDeleteDialogOpen(true)}
+                sx={{ p: 0 }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Tooltip>
+
+        </Box>
 
       </Box>
+
+      {/* ── 削除確認ダイアログ ──────────────────────── */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>日記を削除しますか？</DialogTitle>
+        <DialogContent>
+          <Typography>{currentDate} の日記を削除します。この操作は取り消せません。</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>キャンセル</Button>
+          <Button
+            onClick={() => {
+              if (currentDate) useDailyStore.getState().deleteDiary(currentDate);
+              setDeleteDialogOpen(false);
+            }}
+          >
+            削除
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Box sx={{ flex: 1, minHeight: 0, position: "relative" }}>
         {/* currentDate が null の間だけプレースホルダーをオーバーレイで表示する */}
