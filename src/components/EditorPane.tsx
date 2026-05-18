@@ -3,7 +3,8 @@ import { EditorView, keymap } from "@codemirror/view";
 import { EditorState, Transaction } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { Box, Typography } from "@mui/material";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
 import { useDailyStore } from "../store/dailyStore";
 import { uiFont } from "../theme";
 
@@ -99,14 +100,33 @@ export default function EditorPane() {
     <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper", overflow: "hidden" }}>
       {/* 現在開いている日付を表示するヘッダーバー */}
       <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "text.secondary", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
-          {currentDate ?? "—"}
-        </Typography>
-        {isDirty && (
+
+        {/* 左：日付 + 未保存インジケーター */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
-            未保存
+            {currentDate ?? "—"}
           </Typography>
-        )}
+          {isDirty && (
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              未保存
+            </Typography>
+          )}
+        </Box>
+
+        {/* 右：保存ボタン */}
+        <Tooltip title="保存 (Ctrl+S)">
+          <Box component="span" sx={{ display: "flex" }}>
+            <IconButton
+              size="small"
+              disabled={!currentDate}
+              onClick={() => useDailyStore.getState().saveDiary()}
+              sx={{ p: 0 }}
+            >
+              <SaveIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Tooltip>
+
       </Box>
 
       <Box sx={{ flex: 1, minHeight: 0, position: "relative" }}>
