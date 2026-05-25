@@ -240,6 +240,8 @@ export default function CalendarModal() {
                       </Typography>
                       {/* 日記が存在する日付のドット */}
                       <Box
+                        data-testid={`diary-dot-${day}`}
+                        data-has-diary={daysWithDiary.has(day)}
                         sx={{
                           width: 4,
                           height: 4,
