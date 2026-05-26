@@ -1,9 +1,8 @@
-import { Box, Typography } from "@mui/material";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { Typography } from "@mui/material";
 import { useDailyStore } from "../store/dailyStore";
 import PaneContainer from "./ui/PaneContainer";
 import PaneHeader from "./ui/PaneHeader";
+import MarkdownPreview from "./ui/MarkdownPreview";
 
 // ────────────────────────────────────────────
 // コンポーネント
@@ -24,22 +23,7 @@ export default function PreviewPane() {
       </PaneHeader>
 
       {/* プレビュー本文 */}
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          px: 4,
-          py: 3,
-          color: "text.primary",
-          ...MARKDOWN_STYLES,
-        }}
-      >
-        {currentDate && (
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {stripFrontmatter(content)}
-          </ReactMarkdown>
-        )}
-      </Box>
+      <MarkdownPreview content={currentDate ? content : ""} />
 
     </PaneContainer>
   );
