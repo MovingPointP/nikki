@@ -8,6 +8,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDailyStore } from "../store/dailyStore";
 import { uiFont } from "../theme";
+import PaneHeader from "./ui/PaneHeader";
 
 // ────────────────────────────────────────────
 // 定数
@@ -105,7 +106,7 @@ export default function EditorPane() {
   return (
     <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper", overflow: "hidden" }}>
       {/* 現在開いている日付を表示するヘッダーバー */}
-      <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "text.secondary", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <PaneHeader sx={{ justifyContent: "space-between" }}>
 
         {/* 左：日付 + 未保存インジケーター */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -151,7 +152,7 @@ export default function EditorPane() {
 
         </Box>
 
-      </Box>
+      </PaneHeader>
 
       {/* ── 削除確認ダイアログ ──────────────────────── */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
