@@ -2,6 +2,7 @@ import { Box, Typography } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useDailyStore } from "../store/dailyStore";
+import PaneContainer from "./ui/PaneContainer";
 import PaneHeader from "./ui/PaneHeader";
 
 // ────────────────────────────────────────────
@@ -13,7 +14,7 @@ export default function PreviewPane() {
   const currentDate = useDailyStore((s) => s.currentDate);
 
   return (
-    <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper", overflow: "hidden" }}>
+    <PaneContainer>
 
       {/* ヘッダーバー */}
       <PaneHeader>
@@ -40,6 +41,6 @@ export default function PreviewPane() {
         )}
       </Box>
 
-    </Box>
+    </PaneContainer>
   );
 }

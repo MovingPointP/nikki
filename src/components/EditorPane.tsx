@@ -8,6 +8,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDailyStore } from "../store/dailyStore";
 import { uiFont } from "../theme";
+import PaneContainer from "./ui/PaneContainer";
 import PaneHeader from "./ui/PaneHeader";
 
 // ────────────────────────────────────────────
@@ -104,7 +105,7 @@ export default function EditorPane() {
   }, [currentDate]);
 
   return (
-    <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper", overflow: "hidden" }}>
+    <PaneContainer>
       {/* 現在開いている日付を表示するヘッダーバー */}
       <PaneHeader sx={{ justifyContent: "space-between" }}>
 
@@ -185,6 +186,6 @@ export default function EditorPane() {
         {/* containerRef は常にマウントしておくことで useEffect でのエディタ初期化を保証する */}
         <Box ref={containerRef} sx={{ height: "100%" }} />
       </Box>
-    </Box>
+    </PaneContainer>
   );
 }
