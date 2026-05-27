@@ -30,10 +30,11 @@ vi.mock("../constants/defaultTemplate", () => ({
 
 // モック関数を型付きで取り出す
 import * as fs from "@tauri-apps/plugin-fs";
-const mockReadDir      = vi.mocked(fs.readDir);
-const mockReadTextFile = vi.mocked(fs.readTextFile);
+const mockReadDir       = vi.mocked(fs.readDir);
+const mockReadTextFile  = vi.mocked(fs.readTextFile);
 const mockWriteTextFile = vi.mocked(fs.writeTextFile);
-const mockRemove       = vi.mocked(fs.remove);
+const mockMkdir         = vi.mocked(fs.mkdir);
+const mockRemove        = vi.mocked(fs.remove);
 
 import { useSettingsStore } from "./settingsStore";
 const mockGetState = vi.mocked(useSettingsStore.getState);
@@ -69,6 +70,7 @@ describe("scanDiaryFiles", () => {
     mockGetState.mockReturnValue({ savePath: null } as ReturnType<typeof useSettingsStore.getState>);
     await useDailyStore.getState().scanDiaryFiles();
     expect(useDailyStore.getState().dateList).toEqual([]);
+    expect(mockReadDir).not.toHaveBeenCalled();
   });
 
   it("diary/ フォルダが存在しないときは dateList が空になる", async () => {
@@ -112,6 +114,7 @@ describe("openDiary", () => {
     mockGetState.mockReturnValue({ savePath: null } as ReturnType<typeof useSettingsStore.getState>);
     await useDailyStore.getState().openDiary("2024-01-01");
     expect(useDailyStore.getState().currentDate).toBeNull();
+    expect(mockReadTextFile).not.toHaveBeenCalled();
   });
 
   it("既存の日記はファイルを読み込んで content にセットする", async () => {
@@ -160,6 +163,20 @@ describe("saveDiary", () => {
   it("currentDate が null のときは保存しない", async () => {
     await useDailyStore.getState().saveDiary();
     expect(mockWriteTextFile).not.toHaveBeenCalled();
+  });
+
+  it("正しいパス（savePath/diary/YYYY-MM-DD.md）に保存する", async () => {
+    useDailyStore.setState({ currentDate: "2024-01-01", content: "内容" });
+    mockWriteTextFile.mockResolvedValue(undefined);
+    await useDailyStore.getState().saveDiary();
+    expect(mockWriteTextFile).toHaveBeenCalledWith("/test/diary/2024-01-01.md", "内容");
+  });
+
+  it("保存前に diary/ フォルダを作成する", async () => {
+    useDailyStore.setState({ currentDate: "2024-01-01", content: "" });
+    mockWriteTextFile.mockResolvedValue(undefined);
+    await useDailyStore.getState().saveDiary();
+    expect(mockMkdir).toHaveBeenCalledWith("/test/diary", { recursive: true });
   });
 
   it("保存後に isDirty と isSaving が false になる", async () => {
