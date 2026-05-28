@@ -46,6 +46,7 @@ beforeEach(() => {
     content: "",
     isDirty: false,
     isSaving: false,
+    isLoaded: false,
   });
 });
 

@@ -4,6 +4,7 @@ import { EditorState } from "@codemirror/state";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import { useTemplateStore } from "../store/templateStore";
+import { useSettingsStore } from "../store/settingsStore";
 import { createEditorExtensions } from "../lib/editor";
 import PaneContainer from "./ui/PaneContainer";
 import PaneHeader from "./ui/PaneHeader";
@@ -26,6 +27,8 @@ const editorExtensions = createEditorExtensions(
 export default function TemplateEditorPane() {
   // content の更新で再レンダリングしないよう、isDirty だけを購読する
   const isDirty = useTemplateStore((s) => s.isDirty);
+  const isSaving = useTemplateStore((s) => s.isSaving);
+  const savePath = useSettingsStore((s) => s.savePath);
 
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,6 +85,7 @@ export default function TemplateEditorPane() {
           <Box component="span" sx={{ display: "flex" }}>
             <IconButton
               size="small"
+              disabled={isSaving || !savePath}
               onClick={() => useTemplateStore.getState().saveTemplate()}
               sx={{ p: 0 }}
             >

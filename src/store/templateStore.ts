@@ -27,6 +27,9 @@ interface TemplateState {
   // ファイル保存中の場合 true
   isSaving: boolean;
 
+  // テンプレートが読み込み済みの場合 true
+  isLoaded: boolean;
+
   // テンプレートファイルを読み込む。ファイルがなければ DEFAULT_TEMPLATE を使う
   loadTemplate: () => Promise<void>;
 
@@ -54,19 +57,21 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   content: "",
   isDirty: false,
   isSaving: false,
+  isLoaded: false,
 
   // ── テンプレートの読み込み ────────────────────────
   loadTemplate: async () => {
+    if (get().isLoaded) return;
     const savePath = getSavePath();
     if (!savePath) return;
 
     try {
       const filePath = await join(savePath, TEMPLATE_DIR, TEMPLATE_FILE);
       const content = await readTextFile(filePath);
-      set({ content, isDirty: false });
+      set({ content, isDirty: false, isLoaded: true });
     } catch {
       // ファイルが存在しない場合はデフォルトテンプレートで初期化する
-      set({ content: DEFAULT_TEMPLATE, isDirty: false });
+      set({ content: DEFAULT_TEMPLATE, isDirty: false, isLoaded: true });
     }
   },
 
