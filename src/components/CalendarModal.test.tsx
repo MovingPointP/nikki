@@ -31,7 +31,7 @@ function mockState(dateList: string[] = []) {
 beforeEach(() => {
   vi.clearAllMocks();
   useModalStore.setState({ activeModal: null });
-  useUiStore.setState({ mode: "template" });
+  useUiStore.setState({ mode: "diary" });
   mockState();
 });
 
@@ -266,6 +266,7 @@ describe("日付クリック", () => {
   });
 
   it("日付をクリックすると diary モードになる", async () => {
+    useUiStore.setState({ mode: "template" });
     useModalStore.setState({ activeModal: "calendar" });
     render(<CalendarModal />);
     await userEvent.click(screen.getAllByText("1")[0]);
