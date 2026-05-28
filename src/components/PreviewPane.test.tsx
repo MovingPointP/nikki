@@ -23,10 +23,21 @@ beforeEach(() => {
 });
 
 // ────────────────────────────────────────────
-// テスト
+// ヘッダー表示
 // ────────────────────────────────────────────
 
-describe("PreviewPane", () => {
+describe("ヘッダー表示", () => {
+  it("「プレビュー」ラベルが常に表示される", () => {
+    render(<PreviewPane />);
+    expect(screen.getByText("プレビュー")).toBeInTheDocument();
+  });
+});
+
+// ────────────────────────────────────────────
+// プレビュー本文
+// ────────────────────────────────────────────
+
+describe("プレビュー本文", () => {
   it("currentDate が null のときマークダウンが表示されない", () => {
     mockState({ content: "# Hello", currentDate: null });
     render(<PreviewPane />);
@@ -48,10 +59,5 @@ describe("PreviewPane", () => {
     render(<PreviewPane />);
     expect(screen.getByRole("heading", { level: 1, name: "本文" })).toBeInTheDocument();
     expect(screen.queryByText("tags")).not.toBeInTheDocument();
-  });
-
-  it("「プレビュー」ラベルが常に表示される", () => {
-    render(<PreviewPane />);
-    expect(screen.getByText("プレビュー")).toBeInTheDocument();
   });
 });
