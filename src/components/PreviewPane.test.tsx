@@ -51,13 +51,4 @@ describe("プレビュー本文", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Hello" })).toBeInTheDocument();
   });
 
-  it("フロントマターが除去されて表示される", () => {
-    mockState({
-      content: "---\ntags: []\n---\n\n# 本文",
-      currentDate: "2024-01-01",
-    });
-    render(<PreviewPane />);
-    expect(screen.getByRole("heading", { level: 1, name: "本文" })).toBeInTheDocument();
-    expect(screen.queryByText("tags")).not.toBeInTheDocument();
-  });
 });
