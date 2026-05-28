@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { EditorState, Transaction } from "@codemirror/state";
-import { markdown } from "@codemirror/lang-markdown";
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDailyStore } from "../store/dailyStore";
-import { uiFont } from "../theme";
+import { createEditorExtensions } from "../lib/editor";
 import PaneContainer from "./ui/PaneContainer";
 import PaneHeader from "./ui/PaneHeader";
 
@@ -15,42 +13,12 @@ import PaneHeader from "./ui/PaneHeader";
 // 定数
 // ────────────────────────────────────────────
 
-// ── エディタテーマ ────────────────────────
-const editorTheme = EditorView.theme({
-  // .cm-editor 本体のCSS
-  "&": { height: "100%", fontFamily: uiFont, fontSize: "1rem" },
-  ".cm-scroller": { overflow: "auto" },
-  ".cm-content": { padding: "16px" },
-  // フォーカス時のアウトラインを除去する（MUI の outline と二重にならないよう）
-  ".cm-focused": { outline: "none" },
-});
-
 // ── エディタ拡張 ────────────────────────
-const editorExtensions = [
-  markdown(),
-  EditorView.lineWrapping,
-  editorTheme,
-  // Ctrl+Z/Ctrl+Y での undo/redo を有効にする
-  history(),
-  keymap.of([
-    // Ctrl+S で日記を保存する
-    {
-      key: "Mod-s",
-      run: () => { useDailyStore.getState().saveDiary(); return true; },
-    },
-    // 履歴操作キー
-    ...historyKeymap,
-    // カーソル移動・選択・削除などの標準テキスト編集キー
-    ...defaultKeymap,
-  ]),
-  // ドキュメントが変更されたときにストアの content を更新する
-  // Transaction.remote がマークされた書き換えは除外する
-  EditorView.updateListener.of((update) => {
-    if (update.docChanged && !update.transactions.some((t) => t.annotation(Transaction.remote))) {
-      useDailyStore.getState().setContent(update.state.doc.toString());
-    }
-  }),
-];
+const editorExtensions = createEditorExtensions(
+  // Ctrl+S で日記を保存する
+  () => useDailyStore.getState().saveDiary(),
+  (content) => useDailyStore.getState().setContent(content),
+);
 
 // ────────────────────────────────────────────
 // コンポーネント
