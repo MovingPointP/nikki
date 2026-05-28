@@ -120,6 +120,19 @@ describe("ボタンの disabled 状態", () => {
 });
 
 // ────────────────────────────────────────────
+// 保存ボタン
+// ────────────────────────────────────────────
+
+describe("保存ボタン", () => {
+  it("保存ボタンをクリックすると saveDiary が呼ばれる", async () => {
+    mockState({ currentDate: "2024-01-01" });
+    render(<EditorPane />);
+    await userEvent.click(screen.getByTestId("SaveIcon").closest("button")!);
+    expect(mockSaveDiary).toHaveBeenCalled();
+  });
+});
+
+// ────────────────────────────────────────────
 // プレースホルダー
 // ────────────────────────────────────────────
 
