@@ -127,6 +127,14 @@ describe("openDiary", () => {
     expect(useDailyStore.getState().isLoading).toBe(false);
   });
 
+  it("編集中の日記が未保存の場合は再読み込みせず content と isDirty を維持する", async () => {
+    useDailyStore.setState({ currentDate: "2024-01-08", content: "編集中", isDirty: true });
+    mockReadTextFile.mockResolvedValue("ファイルの内容");
+    await useDailyStore.getState().openDiary("2024-01-08");
+    expect(useDailyStore.getState().content).toBe("編集中");
+    expect(useDailyStore.getState().isDirty).toBe(true);
+  });
+
   it("新規の日記はデフォルトテンプレートを展開して content にセットする（カスタムテンプレートなし）", async () => {
     // テンプレートファイルが存在しない場合は DEFAULT_TEMPLATE にフォールバックする
     mockReadTextFile.mockRejectedValue(new Error("no file"));

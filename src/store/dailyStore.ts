@@ -123,6 +123,9 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     const savePath = getSavePath();
     if (!savePath) return;
 
+    // 同じ日記を開こうとしていて未保存の変更がある場合は再読み込みしない
+    if (get().currentDate === dateStr && get().isDirty) return;
+
     set({ isLoading: true });
 
     try {
