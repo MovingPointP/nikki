@@ -34,12 +34,14 @@ export default function TemplateEditorPane() {
 
   // ── エディタの初期化とテンプレートの読み込み ────────────────────────
   useEffect(() => {
+    // loadTemplate() が解決する前にアンマウントされた場合にエディタ生成をキャンセルするフラグ
+    let destroyed = false;
     const store = useTemplateStore.getState();
     // 未保存の変更がある場合はストアの content をそのまま使い、ファイルを再読み込みしない
     const ready = store.isDirty ? Promise.resolve() : store.loadTemplate();
 
     ready.then(() => {
-      if (!containerRef.current) return;
+      if (destroyed || !containerRef.current) return;
 
       const view = new EditorView({
         state: EditorState.create({
@@ -51,7 +53,10 @@ export default function TemplateEditorPane() {
       viewRef.current = view;
     });
 
-    return () => viewRef.current?.destroy();
+    return () => {
+      destroyed = true;
+      viewRef.current?.destroy();
+    };
   }, []);
 
   return (
