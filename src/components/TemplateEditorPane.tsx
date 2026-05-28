@@ -34,8 +34,11 @@ export default function TemplateEditorPane() {
 
   // ── エディタの初期化とテンプレートの読み込み ────────────────────────
   useEffect(() => {
-    // テンプレートを読み込んでからエディタを生成し、読み込み済みの内容を初期値にする
-    useTemplateStore.getState().loadTemplate().then(() => {
+    const store = useTemplateStore.getState();
+    // 未保存の変更がある場合はストアの content をそのまま使い、ファイルを再読み込みしない
+    const ready = store.isDirty ? Promise.resolve() : store.loadTemplate();
+
+    ready.then(() => {
       if (!containerRef.current) return;
 
       const view = new EditorView({

@@ -45,11 +45,12 @@ const mockGetState         = vi.mocked((useTemplateStore as any).getState as () 
 const mockSaveTemplate = vi.fn();
 const mockLoadTemplate = vi.fn().mockResolvedValue(undefined);
 
-function mockState(state: { isDirty?: boolean }) {
+function mockState(state: { isDirty?: boolean; content?: string }) {
   const full = { isDirty: false, content: "", ...state };
   mockUseTemplateStore.mockImplementation((selector) => selector(full as Parameters<typeof selector>[0]));
   mockGetState.mockReturnValue({
-    content: "",
+    isDirty: full.isDirty,
+    content: full.content,
     loadTemplate: mockLoadTemplate,
     saveTemplate: mockSaveTemplate,
     setContent: vi.fn(),
@@ -106,8 +107,14 @@ describe("保存ボタン", () => {
 // ────────────────────────────────────────────
 
 describe("初期化", () => {
-  it("マウント時に loadTemplate が呼ばれる", () => {
+  it("isDirty が false のときマウント時に loadTemplate が呼ばれる", () => {
     render(<TemplateEditorPane />);
     expect(mockLoadTemplate).toHaveBeenCalled();
+  });
+
+  it("isDirty が true のときマウント時に loadTemplate が呼ばれない", () => {
+    mockState({ isDirty: true });
+    render(<TemplateEditorPane />);
+    expect(mockLoadTemplate).not.toHaveBeenCalled();
   });
 });
