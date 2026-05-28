@@ -4,6 +4,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useModalStore } from "../store/modalStore";
 import { useDailyStore } from "../store/dailyStore";
+import { useUiStore } from "../store/uiStore";
 import { WEEKDAY_NAMES } from "../constants/weekdays";
 
 // ────────────────────────────────────────────
@@ -213,6 +214,7 @@ export default function CalendarModal() {
                     if (!day) return;
                     const dateStr = `${viewYear}-${String(viewMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                     useDailyStore.getState().openDiary(dateStr);
+                    useUiStore.getState().setMode("diary");
                     useModalStore.getState().closeModal();
                   }}
                   sx={{

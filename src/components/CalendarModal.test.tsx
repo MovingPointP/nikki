@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CalendarModal from "./CalendarModal";
 import { useModalStore } from "../store/modalStore";
+import { useUiStore } from "../store/uiStore";
 
 // ────────────────────────────────────────────
 // モック
@@ -30,6 +31,7 @@ function mockState(dateList: string[] = []) {
 beforeEach(() => {
   vi.clearAllMocks();
   useModalStore.setState({ activeModal: null });
+  useUiStore.setState({ mode: "diary" });
   mockState();
 });
 
@@ -261,5 +263,13 @@ describe("日付クリック", () => {
     render(<CalendarModal />);
     await userEvent.click(screen.getAllByText("1")[0]);
     expect(useModalStore.getState().activeModal).toBeNull();
+  });
+
+  it("日付をクリックすると diary モードになる", async () => {
+    useUiStore.setState({ mode: "template" });
+    useModalStore.setState({ activeModal: "calendar" });
+    render(<CalendarModal />);
+    await userEvent.click(screen.getAllByText("1")[0]);
+    expect(useUiStore.getState().mode).toBe("diary");
   });
 });

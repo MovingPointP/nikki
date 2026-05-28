@@ -3,6 +3,7 @@ import { readDir, readTextFile, writeTextFile, mkdir, remove } from "@tauri-apps
 import { join } from "@tauri-apps/api/path";
 import { useSettingsStore } from "./settingsStore";
 import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
+import { TEMPLATE_DIR, TEMPLATE_FILE } from "./templateStore";
 import { getDayName } from "../utils/date";
 
 // ────────────────────────────────────────────
@@ -68,6 +69,17 @@ function applyTemplate(template: string, dateStr: string): string {
   return template.replace(/\{\{date\}\}/g, dateStr).replace(/\{\{day\}\}/g, day);
 }
 
+// カスタムテンプレートを読み込む。ファイルがなければ DEFAULT_TEMPLATE を返す
+// templateStore.loadTemplate() は isDirty などのストア状態を書き換えるため、ここではreadTextFileを行う
+async function readTemplateContent(savePath: string): Promise<string> {
+  try {
+    const filePath = await join(savePath, TEMPLATE_DIR, TEMPLATE_FILE);
+    return await readTextFile(filePath);
+  } catch {
+    return DEFAULT_TEMPLATE;
+  }
+}
+
 // ────────────────────────────────────────────
 // ストア
 // ────────────────────────────────────────────
@@ -112,6 +124,9 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     const savePath = getSavePath();
     if (!savePath) return;
 
+    // 同じ日記がすでに開かれている場合は再読み込みしない
+    if (get().currentDate === dateStr) return;
+
     set({ isLoading: true });
 
     try {
@@ -122,7 +137,8 @@ export const useDailyStore = create<DailyState>((set, get) => ({
         const filePath = await join(savePath, DIARY_DIR, `${dateStr}.md`);
         content = await readTextFile(filePath);
       } else {
-        content = applyTemplate(DEFAULT_TEMPLATE, dateStr);
+        const template = await readTemplateContent(savePath);
+        content = applyTemplate(template, dateStr);
       }
 
       set({ currentDate: dateStr, content, isDirty: false, isLoading: false });

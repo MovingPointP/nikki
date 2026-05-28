@@ -1,54 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { EditorState, Transaction } from "@codemirror/state";
-import { markdown } from "@codemirror/lang-markdown";
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDailyStore } from "../store/dailyStore";
-import { uiFont } from "../theme";
+import { useSettingsStore } from "../store/settingsStore";
+import { createEditorExtensions } from "../lib/editor";
+import PaneContainer from "./ui/PaneContainer";
+import PaneHeader from "./ui/PaneHeader";
 
 // ────────────────────────────────────────────
 // 定数
 // ────────────────────────────────────────────
 
-// ── エディタテーマ ────────────────────────
-const editorTheme = EditorView.theme({
-  // .cm-editor 本体のCSS
-  "&": { height: "100%", fontFamily: uiFont, fontSize: "1rem" },
-  ".cm-scroller": { overflow: "auto" },
-  ".cm-content": { padding: "16px" },
-  // フォーカス時のアウトラインを除去する（MUI の outline と二重にならないよう）
-  ".cm-focused": { outline: "none" },
-});
-
 // ── エディタ拡張 ────────────────────────
-const editorExtensions = [
-  markdown(),
-  EditorView.lineWrapping,
-  editorTheme,
-  // Ctrl+Z/Ctrl+Y での undo/redo を有効にする
-  history(),
-  keymap.of([
-    // Ctrl+S で日記を保存する
-    {
-      key: "Mod-s",
-      run: () => { useDailyStore.getState().saveDiary(); return true; },
-    },
-    // 履歴操作キー
-    ...historyKeymap,
-    // カーソル移動・選択・削除などの標準テキスト編集キー
-    ...defaultKeymap,
-  ]),
-  // ドキュメントが変更されたときにストアの content を更新する
-  // Transaction.remote がマークされた書き換えは除外する
-  EditorView.updateListener.of((update) => {
-    if (update.docChanged && !update.transactions.some((t) => t.annotation(Transaction.remote))) {
-      useDailyStore.getState().setContent(update.state.doc.toString());
-    }
-  }),
-];
+const editorExtensions = createEditorExtensions(
+  // Ctrl+S で日記を保存する
+  () => useDailyStore.getState().saveDiary(),
+  (content) => useDailyStore.getState().setContent(content),
+);
 
 // ────────────────────────────────────────────
 // コンポーネント
@@ -58,7 +29,9 @@ export default function EditorPane() {
   // content の更新で再レンダリングしないよう、セレクタで currentDate と isDirty だけを購読する
   const currentDate = useDailyStore((s) => s.currentDate);
   const isDirty     = useDailyStore((s) => s.isDirty);
+  const isSaving    = useDailyStore((s) => s.isSaving);
   const dateList    = useDailyStore((s) => s.dateList);
+  const savePath    = useSettingsStore((s) => s.savePath);
   // ディスク上に日記ファイルが存在する場合のみ削除ボタンを有効にする
   const diaryExists = currentDate !== null && dateList.includes(currentDate);
 
@@ -103,9 +76,9 @@ export default function EditorPane() {
   }, [currentDate]);
 
   return (
-    <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", bgcolor: "background.paper", overflow: "hidden" }}>
+    <PaneContainer>
       {/* 現在開いている日付を表示するヘッダーバー */}
-      <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "text.secondary", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <PaneHeader sx={{ justifyContent: "space-between" }}>
 
         {/* 左：日付 + 未保存インジケーター */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -127,7 +100,7 @@ export default function EditorPane() {
             <Box component="span" sx={{ display: "flex" }}>
               <IconButton
                 size="small"
-                disabled={!currentDate}
+                disabled={!currentDate || isSaving || !savePath}
                 onClick={() => useDailyStore.getState().saveDiary()}
                 sx={{ p: 0 }}
               >
@@ -151,7 +124,7 @@ export default function EditorPane() {
 
         </Box>
 
-      </Box>
+      </PaneHeader>
 
       {/* ── 削除確認ダイアログ ──────────────────────── */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
@@ -184,6 +157,6 @@ export default function EditorPane() {
         {/* containerRef は常にマウントしておくことで useEffect でのエディタ初期化を保証する */}
         <Box ref={containerRef} sx={{ height: "100%" }} />
       </Box>
-    </Box>
+    </PaneContainer>
   );
 }

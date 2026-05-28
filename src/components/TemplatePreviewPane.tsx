@@ -1,5 +1,5 @@
 import { Typography } from "@mui/material";
-import { useDailyStore } from "../store/dailyStore";
+import { useTemplateStore } from "../store/templateStore";
 import PaneContainer from "./ui/PaneContainer";
 import PaneHeader from "./ui/PaneHeader";
 import MarkdownPreview from "./ui/MarkdownPreview";
@@ -8,9 +8,8 @@ import MarkdownPreview from "./ui/MarkdownPreview";
 // コンポーネント
 // ────────────────────────────────────────────
 
-export default function PreviewPane() {
-  const content = useDailyStore((s) => s.content);
-  const currentDate = useDailyStore((s) => s.currentDate);
+export default function TemplatePreviewPane() {
+  const content = useTemplateStore((s) => s.content);
 
   return (
     <PaneContainer>
@@ -18,12 +17,12 @@ export default function PreviewPane() {
       {/* ヘッダーバー */}
       <PaneHeader>
         <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
-          プレビュー
+          テンプレートプレビュー
         </Typography>
       </PaneHeader>
 
       {/* プレビュー本文 */}
-      <MarkdownPreview content={currentDate ? content : ""} />
+      <MarkdownPreview content={content} />
 
     </PaneContainer>
   );
