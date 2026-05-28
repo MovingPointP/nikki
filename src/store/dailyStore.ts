@@ -68,6 +68,17 @@ function applyTemplate(template: string, dateStr: string): string {
   return template.replace(/\{\{date\}\}/g, dateStr).replace(/\{\{day\}\}/g, day);
 }
 
+// カスタムテンプレートを読み込む。ファイルがなければ DEFAULT_TEMPLATE を返す
+// templateStore.loadTemplate() は isDirty などのストア状態を書き換えるため、ここではreadTextFileを行う
+async function readTemplateContent(savePath: string): Promise<string> {
+  try {
+    const filePath = await join(savePath, "templates", "default.md");
+    return await readTextFile(filePath);
+  } catch {
+    return DEFAULT_TEMPLATE;
+  }
+}
+
 // ────────────────────────────────────────────
 // ストア
 // ────────────────────────────────────────────
@@ -122,7 +133,8 @@ export const useDailyStore = create<DailyState>((set, get) => ({
         const filePath = await join(savePath, DIARY_DIR, `${dateStr}.md`);
         content = await readTextFile(filePath);
       } else {
-        content = applyTemplate(DEFAULT_TEMPLATE, dateStr);
+        const template = await readTemplateContent(savePath);
+        content = applyTemplate(template, dateStr);
       }
 
       set({ currentDate: dateStr, content, isDirty: false, isLoading: false });
