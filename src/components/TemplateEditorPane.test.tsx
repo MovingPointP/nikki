@@ -1,0 +1,113 @@
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import TemplateEditorPane from "./TemplateEditorPane";
+
+// ────────────────────────────────────────────
+// モック
+// ────────────────────────────────────────────
+
+// CodeMirror は jsdom 上でのDOM操作が想定外のためモックする
+vi.mock("@codemirror/view", () => {
+  class EditorView {
+    destroy  = vi.fn();
+    dispatch = vi.fn();
+    state    = { doc: { toString: () => "" } };
+    static theme          = vi.fn(() => ({}));
+    static lineWrapping   = {};
+    static updateListener = { of: vi.fn(() => ({})) };
+  }
+  return { EditorView, keymap: { of: vi.fn(() => ({})) } };
+});
+
+vi.mock("@codemirror/state", () => ({
+  EditorState: { create: vi.fn(() => ({})) },
+  Transaction: { remote: { of: vi.fn(() => ({})) } },
+}));
+
+vi.mock("@codemirror/lang-markdown", () => ({ markdown: vi.fn(() => ({})) }));
+
+vi.mock("@codemirror/commands", () => ({
+  defaultKeymap: [],
+  history:       vi.fn(() => ({})),
+  historyKeymap: [],
+}));
+
+vi.mock("../store/templateStore", () => ({
+  // Object.assign で getState を型に含める
+  useTemplateStore: Object.assign(vi.fn(), { getState: vi.fn() }),
+}));
+
+import { useTemplateStore } from "../store/templateStore";
+const mockUseTemplateStore = vi.mocked(useTemplateStore);
+const mockGetState         = vi.mocked((useTemplateStore as any).getState as () => unknown);
+
+const mockSaveTemplate = vi.fn();
+const mockLoadTemplate = vi.fn().mockResolvedValue(undefined);
+
+function mockState(state: { isDirty?: boolean }) {
+  const full = { isDirty: false, content: "", ...state };
+  mockUseTemplateStore.mockImplementation((selector) => selector(full as Parameters<typeof selector>[0]));
+  mockGetState.mockReturnValue({
+    content: "",
+    loadTemplate: mockLoadTemplate,
+    saveTemplate: mockSaveTemplate,
+    setContent: vi.fn(),
+  } as unknown as ReturnType<typeof mockGetState>);
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockLoadTemplate.mockResolvedValue(undefined);
+  mockState({ isDirty: false });
+});
+
+// ────────────────────────────────────────────
+// ヘッダー表示
+// ────────────────────────────────────────────
+
+describe("ヘッダー表示", () => {
+  it("「テンプレート」ラベルが常に表示される", () => {
+    render(<TemplateEditorPane />);
+    expect(screen.getByText("テンプレート")).toBeInTheDocument();
+  });
+
+  it("isDirty が true のとき「未保存」が表示される", () => {
+    mockState({ isDirty: true });
+    render(<TemplateEditorPane />);
+    expect(screen.getByText("未保存")).toBeInTheDocument();
+  });
+
+  it("isDirty が false のとき「未保存」が表示されない", () => {
+    render(<TemplateEditorPane />);
+    expect(screen.queryByText("未保存")).not.toBeInTheDocument();
+  });
+});
+
+// ────────────────────────────────────────────
+// 保存ボタン
+// ────────────────────────────────────────────
+
+describe("保存ボタン", () => {
+  it("保存ボタンが常に有効になっている", () => {
+    render(<TemplateEditorPane />);
+    expect(screen.getByTestId("SaveIcon").closest("button")).not.toBeDisabled();
+  });
+
+  it("保存ボタンをクリックすると saveTemplate が呼ばれる", async () => {
+    render(<TemplateEditorPane />);
+    await userEvent.click(screen.getByTestId("SaveIcon").closest("button")!);
+    expect(mockSaveTemplate).toHaveBeenCalled();
+  });
+});
+
+// ────────────────────────────────────────────
+// 初期化
+// ────────────────────────────────────────────
+
+describe("初期化", () => {
+  it("マウント時に loadTemplate が呼ばれる", () => {
+    render(<TemplateEditorPane />);
+    expect(mockLoadTemplate).toHaveBeenCalled();
+  });
+});
