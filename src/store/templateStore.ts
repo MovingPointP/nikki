@@ -9,9 +9,9 @@ import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
 // ────────────────────────────────────────────
 
 // テンプレートファイルの保存先サブフォルダ名
-const TEMPLATE_DIR = "templates";
+export const TEMPLATE_DIR = "templates";
 // テンプレートファイル名
-const TEMPLATE_FILE = "default.md";
+export const TEMPLATE_FILE = "default.md";
 
 // ────────────────────────────────────────────
 // 型定義

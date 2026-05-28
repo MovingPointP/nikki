@@ -3,6 +3,7 @@ import { readDir, readTextFile, writeTextFile, mkdir, remove } from "@tauri-apps
 import { join } from "@tauri-apps/api/path";
 import { useSettingsStore } from "./settingsStore";
 import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
+import { TEMPLATE_DIR, TEMPLATE_FILE } from "./templateStore";
 import { getDayName } from "../utils/date";
 
 // ────────────────────────────────────────────
@@ -72,7 +73,7 @@ function applyTemplate(template: string, dateStr: string): string {
 // templateStore.loadTemplate() は isDirty などのストア状態を書き換えるため、ここではreadTextFileを行う
 async function readTemplateContent(savePath: string): Promise<string> {
   try {
-    const filePath = await join(savePath, "templates", "default.md");
+    const filePath = await join(savePath, TEMPLATE_DIR, TEMPLATE_FILE);
     return await readTextFile(filePath);
   } catch {
     return DEFAULT_TEMPLATE;
