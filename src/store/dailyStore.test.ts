@@ -127,10 +127,22 @@ describe("openDiary", () => {
     expect(useDailyStore.getState().isLoading).toBe(false);
   });
 
-  it("新規の日記はテンプレートを展開して content にセットする", async () => {
+  it("新規の日記はデフォルトテンプレートを展開して content にセットする（カスタムテンプレートなし）", async () => {
+    // テンプレートファイルが存在しない場合は DEFAULT_TEMPLATE にフォールバックする
+    mockReadTextFile.mockRejectedValue(new Error("no file"));
     await useDailyStore.getState().openDiary("2024-01-08");
     // "2024-01-08" は月曜日
     expect(useDailyStore.getState().content).toBe("# 2024-01-08（月）");
+    expect(useDailyStore.getState().currentDate).toBe("2024-01-08");
+    expect(useDailyStore.getState().isDirty).toBe(false);
+    expect(useDailyStore.getState().isLoading).toBe(false);
+  });
+
+  it("新規の日記はカスタムテンプレートを展開して content にセットする", async () => {
+    mockReadTextFile.mockResolvedValue("## {{date}}（{{day}}） カスタム");
+    await useDailyStore.getState().openDiary("2024-01-08");
+    // "2024-01-08" は月曜日
+    expect(useDailyStore.getState().content).toBe("## 2024-01-08（月） カスタム");
     expect(useDailyStore.getState().currentDate).toBe("2024-01-08");
     expect(useDailyStore.getState().isDirty).toBe(false);
     expect(useDailyStore.getState().isLoading).toBe(false);
