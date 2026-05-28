@@ -1,11 +1,16 @@
 import { Box, Divider } from "@mui/material";
 import EditorPane from "./EditorPane";
 import PreviewPane from "./PreviewPane";
+import TemplateEditorPane from "./TemplateEditorPane";
+import TemplatePreviewPane from "./TemplatePreviewPane";
 import Sidebar from "./Sidebar";
 import SettingsModal from "./SettingsModal";
 import CalendarModal from "./CalendarModal";
+import { useUiStore } from "../store/uiStore";
 
 export default function MainLayout() {
+  const mode = useUiStore((s) => s.mode);
+
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
 
@@ -18,12 +23,12 @@ export default function MainLayout() {
       <Divider orientation="vertical" flexItem />
 
       {/* エディタペイン */}
-      <EditorPane />
+      {mode === "diary" ? <EditorPane /> : <TemplateEditorPane />}
 
       <Divider orientation="vertical" flexItem />
 
       {/* プレビューペイン */}
-      <PreviewPane />
+      {mode === "diary" ? <PreviewPane /> : <TemplatePreviewPane />}
 
     </Box>
   );
