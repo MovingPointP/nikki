@@ -38,16 +38,23 @@ vi.mock("../store/dailyStore", () => ({
   useDailyStore: Object.assign(vi.fn(), { getState: vi.fn() }),
 }));
 
+vi.mock("../store/settingsStore", () => ({
+  useSettingsStore: vi.fn(),
+}));
+
 import { useDailyStore } from "../store/dailyStore";
-const mockUseDailyStore = vi.mocked(useDailyStore);
-const mockGetState      = vi.mocked((useDailyStore as any).getState as () => unknown);
+import { useSettingsStore } from "../store/settingsStore";
+const mockUseDailyStore    = vi.mocked(useDailyStore);
+const mockUseSettingsStore = vi.mocked(useSettingsStore);
+const mockGetState         = vi.mocked((useDailyStore as any).getState as () => unknown);
 
 const mockSaveDiary   = vi.fn();
 const mockDeleteDiary = vi.fn();
 
-function mockState(state: { currentDate: string | null; isDirty?: boolean; dateList?: string[] }) {
-  const full = { isDirty: false, dateList: [], content: "", ...state };
-  mockUseDailyStore.mockImplementation((selector) => selector(full as Parameters<typeof selector>[0]));
+function mockState(state: { currentDate: string | null; isDirty?: boolean; isSaving?: boolean; dateList?: string[]; savePath?: string | null }) {
+  const full = { isDirty: false, isSaving: false, dateList: [], content: "", savePath: "/test", ...state };
+  mockUseDailyStore.mockImplementation((selector) => selector(full as unknown as Parameters<typeof selector>[0]));
+  mockUseSettingsStore.mockImplementation((selector) => selector({ savePath: full.savePath } as Parameters<typeof selector>[0]));
   mockGetState.mockReturnValue({
     content: "",
     saveDiary: mockSaveDiary,
@@ -104,6 +111,18 @@ describe("ボタンの disabled 状態", () => {
     mockState({ currentDate: "2024-01-01" });
     render(<EditorPane />);
     expect(screen.getByTestId("SaveIcon").closest("button")).not.toBeDisabled();
+  });
+
+  it("savePath が未設定のとき保存ボタンが disabled になる", () => {
+    mockState({ currentDate: "2024-01-01", savePath: null });
+    render(<EditorPane />);
+    expect(screen.getByTestId("SaveIcon").closest("button")).toBeDisabled();
+  });
+
+  it("isSaving が true のとき保存ボタンが disabled になる", () => {
+    mockState({ currentDate: "2024-01-01", isSaving: true });
+    render(<EditorPane />);
+    expect(screen.getByTestId("SaveIcon").closest("button")).toBeDisabled();
   });
 
   it("dateList に currentDate がないとき削除ボタンが disabled になる", () => {

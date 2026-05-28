@@ -5,6 +5,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconBut
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDailyStore } from "../store/dailyStore";
+import { useSettingsStore } from "../store/settingsStore";
 import { createEditorExtensions } from "../lib/editor";
 import PaneContainer from "./ui/PaneContainer";
 import PaneHeader from "./ui/PaneHeader";
@@ -28,7 +29,9 @@ export default function EditorPane() {
   // content の更新で再レンダリングしないよう、セレクタで currentDate と isDirty だけを購読する
   const currentDate = useDailyStore((s) => s.currentDate);
   const isDirty     = useDailyStore((s) => s.isDirty);
+  const isSaving    = useDailyStore((s) => s.isSaving);
   const dateList    = useDailyStore((s) => s.dateList);
+  const savePath    = useSettingsStore((s) => s.savePath);
   // ディスク上に日記ファイルが存在する場合のみ削除ボタンを有効にする
   const diaryExists = currentDate !== null && dateList.includes(currentDate);
 
@@ -97,7 +100,7 @@ export default function EditorPane() {
             <Box component="span" sx={{ display: "flex" }}>
               <IconButton
                 size="small"
-                disabled={!currentDate}
+                disabled={!currentDate || isSaving || !savePath}
                 onClick={() => useDailyStore.getState().saveDiary()}
                 sx={{ p: 0 }}
               >
