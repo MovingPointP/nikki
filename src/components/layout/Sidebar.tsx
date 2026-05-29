@@ -3,8 +3,8 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BookIcon from "@mui/icons-material/Book";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import { useModalStore } from "../store/modalStore";
-import { useUiStore } from "../store/uiStore";
+import { useModalStore } from "../../store/modalStore";
+import { useUiStore } from "../../store/uiStore";
 
 // ────────────────────────────────────────────
 // 定数

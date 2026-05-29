@@ -7,18 +7,18 @@ import MainLayout from "./MainLayout";
 // ────────────────────────────────────────────
 
 // 子コンポーネントを最小実装に差し替える
-vi.mock("./Sidebar",               () => ({ default: () => <div data-testid="sidebar" /> }));
-vi.mock("./EditorPane",            () => ({ default: () => <div data-testid="editor-pane" /> }));
-vi.mock("./PreviewPane",           () => ({ default: () => <div data-testid="preview-pane" /> }));
-vi.mock("./TemplateEditorPane",    () => ({ default: () => <div data-testid="template-editor-pane" /> }));
-vi.mock("./TemplatePreviewPane",   () => ({ default: () => <div data-testid="template-preview-pane" /> }));
-vi.mock("./SettingsModal",         () => ({ default: () => <div data-testid="settings-modal" /> }));
-vi.mock("./CalendarModal",         () => ({ default: () => <div data-testid="calendar-modal" /> }));
+vi.mock("./Sidebar",                    () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("../diary/EditorPane",          () => ({ default: () => <div data-testid="editor-pane" /> }));
+vi.mock("../diary/PreviewPane",         () => ({ default: () => <div data-testid="preview-pane" /> }));
+vi.mock("../template/TemplateEditorPane",  () => ({ default: () => <div data-testid="template-editor-pane" /> }));
+vi.mock("../template/TemplatePreviewPane", () => ({ default: () => <div data-testid="template-preview-pane" /> }));
+vi.mock("../settings/SettingsModal",    () => ({ default: () => <div data-testid="settings-modal" /> }));
+vi.mock("../calendar/CalendarModal",    () => ({ default: () => <div data-testid="calendar-modal" /> }));
 
-vi.mock("../store/uiStore");
+vi.mock("../../store/uiStore");
 
-import { useUiStore } from "../store/uiStore";
-import type { AppMode } from "../store/uiStore";
+import { useUiStore } from "../../store/uiStore";
+import type { AppMode } from "../../store/uiStore";
 const mockUseUiStore = vi.mocked(useUiStore);
 
 function mockMode(mode: AppMode) {

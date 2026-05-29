@@ -33,17 +33,17 @@ vi.mock("@codemirror/commands", () => ({
   historyKeymap: [],
 }));
 
-vi.mock("../store/dailyStore", () => ({
+vi.mock("../../store/dailyStore", () => ({
   // Object.assign で getState を型に含める
   useDailyStore: Object.assign(vi.fn(), { getState: vi.fn() }),
 }));
 
-vi.mock("../store/settingsStore", () => ({
+vi.mock("../../store/settingsStore", () => ({
   useSettingsStore: vi.fn(),
 }));
 
-import { useDailyStore } from "../store/dailyStore";
-import { useSettingsStore } from "../store/settingsStore";
+import { useDailyStore } from "../../store/dailyStore";
+import { useSettingsStore } from "../../store/settingsStore";
 const mockUseDailyStore    = vi.mocked(useDailyStore);
 const mockUseSettingsStore = vi.mocked(useSettingsStore);
 const mockGetState         = vi.mocked((useDailyStore as any).getState as () => unknown);

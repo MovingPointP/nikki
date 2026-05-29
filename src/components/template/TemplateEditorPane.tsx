@@ -3,11 +3,11 @@ import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-import { useTemplateStore } from "../store/templateStore";
-import { useSettingsStore } from "../store/settingsStore";
-import { createEditorExtensions } from "../lib/editor";
-import PaneContainer from "./ui/PaneContainer";
-import PaneHeader from "./ui/PaneHeader";
+import { useTemplateStore } from "../../store/templateStore";
+import { useSettingsStore } from "../../store/settingsStore";
+import { createEditorExtensions } from "../../lib/editor";
+import PaneContainer from "../ui/PaneContainer";
+import PaneHeader from "../ui/PaneHeader";
 
 // ────────────────────────────────────────────
 // 定数

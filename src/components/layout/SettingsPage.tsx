@@ -1,5 +1,5 @@
 import { Box, Paper } from "@mui/material";
-import SettingsForm from "./SettingsForm";
+import SettingsForm from "../settings/SettingsForm";
 
 export default function SettingsPage() {
   return (

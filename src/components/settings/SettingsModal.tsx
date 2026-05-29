@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SettingsForm from "./SettingsForm";
-import { useModalStore } from "../store/modalStore";
+import { useModalStore } from "../../store/modalStore";
 
 // ────────────────────────────────────────────
 // コンポーネント

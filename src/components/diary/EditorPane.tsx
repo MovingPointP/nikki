@@ -4,11 +4,11 @@ import { EditorState, Transaction } from "@codemirror/state";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useDailyStore } from "../store/dailyStore";
-import { useSettingsStore } from "../store/settingsStore";
-import { createEditorExtensions } from "../lib/editor";
-import PaneContainer from "./ui/PaneContainer";
-import PaneHeader from "./ui/PaneHeader";
+import { useDailyStore } from "../../store/dailyStore";
+import { useSettingsStore } from "../../store/settingsStore";
+import { createEditorExtensions } from "../../lib/editor";
+import PaneContainer from "../ui/PaneContainer";
+import PaneHeader from "../ui/PaneHeader";
 
 // ────────────────────────────────────────────
 // 定数

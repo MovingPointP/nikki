@@ -1,12 +1,12 @@
 import { Box, Divider } from "@mui/material";
-import EditorPane from "./EditorPane";
-import PreviewPane from "./PreviewPane";
-import TemplateEditorPane from "./TemplateEditorPane";
-import TemplatePreviewPane from "./TemplatePreviewPane";
+import EditorPane from "../diary/EditorPane";
+import PreviewPane from "../diary/PreviewPane";
+import TemplateEditorPane from "../template/TemplateEditorPane";
+import TemplatePreviewPane from "../template/TemplatePreviewPane";
 import Sidebar from "./Sidebar";
-import SettingsModal from "./SettingsModal";
-import CalendarModal from "./CalendarModal";
-import { useUiStore } from "../store/uiStore";
+import SettingsModal from "../settings/SettingsModal";
+import CalendarModal from "../calendar/CalendarModal";
+import { useUiStore } from "../../store/uiStore";
 
 export default function MainLayout() {
   const mode = useUiStore((s) => s.mode);

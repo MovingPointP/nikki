@@ -1,25 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import PreviewPane from "./PreviewPane";
+import TemplatePreviewPane from "./TemplatePreviewPane";
 
 // ────────────────────────────────────────────
 // モック
 // ────────────────────────────────────────────
 
-vi.mock("../store/dailyStore");
+vi.mock("../../store/templateStore");
 
-import { useDailyStore } from "../store/dailyStore";
-const mockUseDailyStore = vi.mocked(useDailyStore);
+import { useTemplateStore } from "../../store/templateStore";
+const mockUseTemplateStore = vi.mocked(useTemplateStore);
 
 // セレクタを受け取って状態から値を返すヘルパー
-function mockState(state: { content: string; currentDate: string | null }) {
-  mockUseDailyStore.mockImplementation((selector) =>
+function mockState(state: { content: string }) {
+  mockUseTemplateStore.mockImplementation((selector) =>
     selector(state as Parameters<typeof selector>[0])
   );
 }
 
 beforeEach(() => {
-  mockState({ content: "", currentDate: null });
+  mockState({ content: "" });
 });
 
 // ────────────────────────────────────────────
@@ -27,9 +27,9 @@ beforeEach(() => {
 // ────────────────────────────────────────────
 
 describe("ヘッダー表示", () => {
-  it("「プレビュー」ラベルが常に表示される", () => {
-    render(<PreviewPane />);
-    expect(screen.getByText("プレビュー")).toBeInTheDocument();
+  it("「テンプレートプレビュー」ラベルが常に表示される", () => {
+    render(<TemplatePreviewPane />);
+    expect(screen.getByText("テンプレートプレビュー")).toBeInTheDocument();
   });
 });
 
@@ -38,17 +38,19 @@ describe("ヘッダー表示", () => {
 // ────────────────────────────────────────────
 
 describe("プレビュー本文", () => {
-  it("currentDate が null のときマークダウンが表示されない", () => {
-    mockState({ content: "# Hello", currentDate: null });
-    render(<PreviewPane />);
+  it("content が空のときマークダウンが表示されない", () => {
+    mockState({ content: "" });
+    render(<TemplatePreviewPane />);
     // level: 1 で h1 のみ確認（MUI Typography の h6 と区別する）
     expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
   });
 
-  it("currentDate が設定されているときコンテンツが表示される", () => {
-    mockState({ content: "# Hello", currentDate: "2024-01-01" });
-    render(<PreviewPane />);
-    expect(screen.getByRole("heading", { level: 1, name: "Hello" })).toBeInTheDocument();
+  it("content が設定されているときマークダウンが表示される", () => {
+    mockState({ content: "# テンプレート見出し" });
+    render(<TemplatePreviewPane />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: "テンプレート見出し" })
+    ).toBeInTheDocument();
   });
 
 });

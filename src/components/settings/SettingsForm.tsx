@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import SaveIcon from "@mui/icons-material/Save";
-import { useSettingsStore } from "../store/settingsStore";
+import { useSettingsStore } from "../../store/settingsStore";
 
 export default function SettingsForm() {
   // isLoaded の更新で再レンダリングしないよう、セレクタで savePath を購読する

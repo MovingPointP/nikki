@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { useSettingsStore } from "./store/settingsStore";
 import { useDailyStore } from "./store/dailyStore";
 import { toDateString } from "./utils/date";
-import LoadingScreen from "./components/LoadingScreen";
-import SettingsPage from "./components/SettingsPage";
-import MainLayout from "./components/MainLayout";
+import LoadingScreen from "./components/layout/LoadingScreen";
+import SettingsPage from "./components/layout/SettingsPage";
+import MainLayout from "./components/layout/MainLayout";
 
 // 起動時のルーティング:
 //   設定読み込み中 → LoadingScreen

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Box, Dialog, DialogContent, IconButton, Typography } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { useModalStore } from "../store/modalStore";
-import { useDailyStore } from "../store/dailyStore";
-import { useUiStore } from "../store/uiStore";
-import { WEEKDAY_NAMES } from "../constants/weekdays";
+import { useModalStore } from "../../store/modalStore";
+import { useDailyStore } from "../../store/dailyStore";
+import { useUiStore } from "../../store/uiStore";
+import { WEEKDAY_NAMES } from "../../constants/weekdays";
 
 // ────────────────────────────────────────────
 // ユーティリティ

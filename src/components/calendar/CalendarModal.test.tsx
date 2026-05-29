@@ -2,18 +2,18 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CalendarModal from "./CalendarModal";
-import { useModalStore } from "../store/modalStore";
-import { useUiStore } from "../store/uiStore";
+import { useModalStore } from "../../store/modalStore";
+import { useUiStore } from "../../store/uiStore";
 
 // ────────────────────────────────────────────
 // モック
 // ────────────────────────────────────────────
 
-vi.mock("../store/dailyStore", () => ({
+vi.mock("../../store/dailyStore", () => ({
   useDailyStore: Object.assign(vi.fn(), { getState: vi.fn() }),
 }));
 
-import { useDailyStore } from "../store/dailyStore";
+import { useDailyStore } from "../../store/dailyStore";
 const mockUseDailyStore = vi.mocked(useDailyStore);
 const mockGetState      = vi.mocked((useDailyStore as any).getState as () => unknown);
 
