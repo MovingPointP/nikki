@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { load } from "@tauri-apps/plugin-store";
+import { invoke } from "@tauri-apps/api/core";
 
 // ────────────────────────────────────────────
 // 定数
@@ -9,6 +10,14 @@ import { load } from "@tauri-apps/plugin-store";
 const STORE_FILE = "settings.json";
 // 日記の保存フォルダパスを格納するキー名
 const KEY_SAVE_PATH = "savePath";
+// ズームレベルを格納するキー名
+const KEY_ZOOM_LEVEL = "zoomLevel";
+// ズームの最小値・最大値・デフォルト値
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 3.0;
+const ZOOM_DEFAULT = 1.0;
+// 1回のショートカット操作で変化するズーム量
+const ZOOM_STEP = 0.1;
 
 // ────────────────────────────────────────────
 // ユーティリティ
@@ -28,28 +37,43 @@ interface SettingsState {
   // 設定の読み込みが完了したか（App.tsx でローディング画面の制御に使う）
   isLoaded: boolean;
 
+  // WebView のズームレベル（1.0 = 100%）
+  zoomLevel: number;
+
   // 起動時に設定ファイルから保存パスを取得する
   loadSettings: () => Promise<void>;
 
   // 設定ファイルに保存パスを登録する
   setSavePath: (path: string) => Promise<void>;
+
+  // WebView のズームレベルを変更し設定ファイルに保存する
+  setZoomLevel: (level: number) => Promise<void>;
+
+  // ズームを 1 ステップ拡大・縮小・リセットする
+  zoomIn: () => Promise<void>;
+  zoomOut: () => Promise<void>;
+  zoomReset: () => Promise<void>;
 }
 
 // ────────────────────────────────────────────
 // ストア
 // ────────────────────────────────────────────
 
-export const useSettingsStore = create<SettingsState>((set) => ({
+export const useSettingsStore = create<SettingsState>((set, get) => ({
   savePath: null,
   isLoaded: false,
+  zoomLevel: ZOOM_DEFAULT,
 
   // ── 設定の読み込み ────────────────────────
   loadSettings: async () => {
     try {
       const store = await openStore();
       const savePath = await store.get<string>(KEY_SAVE_PATH);
-      // キーが存在しない場合は undefined が返るため null に統一する
-      set({ savePath: savePath ?? null, isLoaded: true });
+      const zoomLevel = await store.get<number>(KEY_ZOOM_LEVEL);
+      // キーが存在しない場合は undefined が返るため既定値に統一する
+      set({ savePath: savePath ?? null, zoomLevel: zoomLevel ?? ZOOM_DEFAULT, isLoaded: true });
+      // 保存済みのズームレベルを WebView に適用する
+      await invoke("set_zoom", { scaleFactor: zoomLevel ?? ZOOM_DEFAULT });
     } catch {
       // 読み込み失敗時（初回起動・ファイル破損など）は未設定扱いで設定画面へ進める
       set({ savePath: null, isLoaded: true });
@@ -64,4 +88,19 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     await store.save();
     set({ savePath: path, isLoaded: true });
   },
+
+  // ── ズームレベルの更新 ────────────────────────
+  setZoomLevel: async (level: number) => {
+    const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, level));
+    await invoke("set_zoom", { scaleFactor: clamped });
+    const store = await openStore();
+    await store.set(KEY_ZOOM_LEVEL, clamped);
+    await store.save();
+    set({ zoomLevel: clamped });
+  },
+
+  // ── ズーム操作のショートカット ────────────────────────
+  zoomIn: () => get().setZoomLevel(get().zoomLevel + ZOOM_STEP),
+  zoomOut: () => get().setZoomLevel(get().zoomLevel - ZOOM_STEP),
+  zoomReset: () => get().setZoomLevel(ZOOM_DEFAULT),
 }));

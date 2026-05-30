@@ -15,9 +15,22 @@ function App() {
   const savePath = useSettingsStore((s) => s.savePath);
   const { scanDiaryFiles, openDiary } = useDailyStore.getState();
 
-  // 起動時に設定ファイルから savePath を読み込む
+  // 起動時に設定ファイルから savePath・zoomLevel を読み込む
   useEffect(() => {
     useSettingsStore.getState().loadSettings();
+  }, []);
+
+  // Ctrl+=/+: 拡大  Ctrl+-: 縮小  Ctrl+0: リセット
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.ctrlKey) return;
+      const { zoomIn, zoomOut, zoomReset } = useSettingsStore.getState();
+      if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomIn(); }
+      if (e.key === "-")                  { e.preventDefault(); zoomOut(); }
+      if (e.key === "0")                  { e.preventDefault(); zoomReset(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
 // savePath が確定したらファイルスキャンを実行し、今日の日記を開く
