@@ -91,12 +91,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   // ── ズームレベルの更新 ────────────────────────
   setZoomLevel: async (level: number) => {
+    // ZOOM_MIN〜ZOOM_MAX の範囲に収める（範囲外の値が渡されても安全に動作させるため）
     const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, level));
     await invoke("set_zoom", { scaleFactor: clamped });
+    set({ zoomLevel: clamped });
     const store = await openStore();
     await store.set(KEY_ZOOM_LEVEL, clamped);
     await store.save();
-    set({ zoomLevel: clamped });
   },
 
   // ── ズーム操作のショートカット ────────────────────────
