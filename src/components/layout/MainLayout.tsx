@@ -31,9 +31,9 @@ export default function MainLayout() {
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!panelsRef.current) return;
     const rect = panelsRef.current.getBoundingClientRect();
-    // ゼロ幅時は NaN が伝搬するため早期リターン
+    // ゼロ幅・負の幅のときは NaN や Infinity の発生を防ぐため早期リターン
     const availableWidth = rect.width - DIVIDER_WIDTH;
-    if (!availableWidth) return;
+    if (availableWidth <= 0) return;
     const relativeX = e.clientX - rect.left;
     // ペイン領域（ハンドル幅を除いた幅）でクランプし、コンテナ%に変換して保存
     const pct = Math.min(EDITOR_WIDTH_MAX, Math.max(EDITOR_WIDTH_MIN, (relativeX / availableWidth) * 100));
