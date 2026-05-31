@@ -189,7 +189,7 @@ describe("zoomIn", () => {
     useSettingsStore.setState({ zoomLevel: 1.0 });
     mockLoad.mockResolvedValue(createMockStore());
     await useSettingsStore.getState().zoomIn();
-    expect(useSettingsStore.getState().zoomLevel).toBeCloseTo(1.1);
+    expect(useSettingsStore.getState().zoomLevel).toBe(1.1);
   });
 
   it("最大値 3.0 を超えない", async () => {
@@ -205,7 +205,7 @@ describe("zoomOut", () => {
     useSettingsStore.setState({ zoomLevel: 1.0 });
     mockLoad.mockResolvedValue(createMockStore());
     await useSettingsStore.getState().zoomOut();
-    expect(useSettingsStore.getState().zoomLevel).toBeCloseTo(0.9);
+    expect(useSettingsStore.getState().zoomLevel).toBe(0.9);
   });
 
   it("最小値 0.5 を下回らない", async () => {

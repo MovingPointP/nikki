@@ -91,8 +91,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   // ── ズームレベルの更新 ────────────────────────
   setZoomLevel: async (level: number) => {
+    // 浮動小数点数の精度問題を避けるため、小数点第1位に丸める
+    const rounded = Math.round(level * 10) / 10;
     // ZOOM_MIN〜ZOOM_MAX の範囲に収める（範囲外の値が渡されても安全に動作させるため）
-    const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, level));
+    const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, rounded));
     await getCurrentWebview().setZoom(clamped);
     set({ zoomLevel: clamped });
     const store = await openStore();
