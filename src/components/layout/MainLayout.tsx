@@ -40,21 +40,22 @@ export default function MainLayout() {
     setEditorWidthPct(pct * availableWidth / rect.width);
   }, []);
 
-  // ── ドラッグ終了・アンマウント時のクリーンアップ ────────────────────────
-  useEffect(() => {
-    const handleMouseUp = () => {
-      // ドラッグ終了時にカーソルとテキスト選択を元に戻す
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
+  // ── ドラッグ終了 ────────────────────────
+  const handleMouseUp = useCallback(() => {
+    // ドラッグ終了時にカーソルとテキスト選択を元に戻す
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
   }, [handleMouseMove]);
+
+  // ── アンマウント時のクリーンアップ ────────────────────────
+  useEffect(() => {
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
 
   // ── ドラッグ開始 ────────────────────────
   const handleDividerMouseDown = useCallback((e: React.MouseEvent) => {
@@ -62,8 +63,9 @@ export default function MainLayout() {
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
     window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
     e.preventDefault();
-  }, [handleMouseMove]);
+  }, [handleMouseMove, handleMouseUp]);
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
