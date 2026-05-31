@@ -80,7 +80,7 @@ export default function MainLayout() {
       <Box ref={panelsRef} sx={{ display: "flex", flex: 1, minHeight: 0, overflow: "hidden" }}>
 
         {/* エディタペイン（幅を動的に制御） */}
-        <Box sx={{ flex: "none", width: `${editorWidthPct}%`, display: "flex", minHeight: 0 }}>
+        <Box data-editor-width={editorWidthPct} sx={{ flex: "none", width: `${editorWidthPct}%`, display: "flex", minHeight: 0 }}>
           {mode === "diary" ? <EditorPane /> : <TemplateEditorPane />}
         </Box>
 
