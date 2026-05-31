@@ -20,10 +20,10 @@ function App() {
     useSettingsStore.getState().loadSettings();
   }, []);
 
-  // Ctrl+=/+: 拡大  Ctrl+-: 縮小  Ctrl+0: リセット
+  // Ctrl/Cmd+=/+: 拡大  Ctrl/Cmd+-: 縮小  Ctrl/Cmd+0: リセット
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (!e.ctrlKey) return;
+      if (!e.ctrlKey && !e.metaKey) return;
       const { zoomIn, zoomOut, zoomReset } = useSettingsStore.getState();
       if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomIn(); }
       if (e.key === "-")                  { e.preventDefault(); zoomOut(); }
