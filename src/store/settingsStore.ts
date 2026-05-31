@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { load } from "@tauri-apps/plugin-store";
-import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 
 // ────────────────────────────────────────────
 // 定数
@@ -73,7 +73,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // キーが存在しない場合は undefined が返るため既定値に統一する
       set({ savePath: savePath ?? null, zoomLevel: zoomLevel ?? ZOOM_DEFAULT, isLoaded: true });
       // 保存済みのズームレベルを WebView に適用する
-      await invoke("set_zoom", { scaleFactor: zoomLevel ?? ZOOM_DEFAULT });
+      await getCurrentWebview().setZoom(zoomLevel ?? ZOOM_DEFAULT);
     } catch {
       // 読み込み失敗時（初回起動・ファイル破損など）は未設定扱いで設定画面へ進める
       set({ savePath: null, isLoaded: true });
@@ -93,7 +93,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setZoomLevel: async (level: number) => {
     // ZOOM_MIN〜ZOOM_MAX の範囲に収める（範囲外の値が渡されても安全に動作させるため）
     const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, level));
-    await invoke("set_zoom", { scaleFactor: clamped });
+    await getCurrentWebview().setZoom(clamped);
     set({ zoomLevel: clamped });
     const store = await openStore();
     await store.set(KEY_ZOOM_LEVEL, clamped);
