@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useSettingsStore } from "./store/settingsStore";
 import { useDailyStore } from "./store/dailyStore";
+import { useMemoriesStore } from "./store/memoriesStore";
+import { useModalStore } from "./store/modalStore";
 import { toDateString } from "./utils/date";
 import LoadingScreen from "./components/layout/LoadingScreen";
 import SettingsPage from "./components/layout/SettingsPage";
@@ -36,11 +38,19 @@ function App() {
 // savePath が確定したらファイルスキャンを実行し、今日の日記を開く
   // 設定画面で savePath を新たに設定した場合にも再スキャン・再オープンされる
   useEffect(() => {
-    if (savePath) {
-      // 本日の日付を YYYY-MM-DD 形式で初期化
-      const dateStr = toDateString(new Date());
-      scanDiaryFiles().then(() => openDiary(dateStr));
-    }
+    if (!savePath) return;
+    const dateStr = toDateString(new Date());
+    (async () => {
+      await scanDiaryFiles();
+      await openDiary(dateStr);
+      const { dateList } = useDailyStore.getState();
+      await useMemoriesStore.getState().initTabs(dateList, dateStr);
+      const { tabs } = useMemoriesStore.getState();
+      // アクティブなタブが1つ以上あるときのみモーダルを表示する
+      if (tabs.some((t) => t.isActive)) {
+        useModalStore.getState().openModal("memories");
+      }
+    })();
   }, [savePath]);
 
   if (!isLoaded) {
