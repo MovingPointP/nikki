@@ -9,6 +9,8 @@ export const MARKDOWN_STYLES: SxProps<Theme> = {
   "& h1": { fontSize: "1.8rem", fontWeight: 700, mt: 3, mb: 1.5, borderBottom: "1px solid", borderColor: "divider", pb: 0.5 },
   "& h2": { fontSize: "1.4rem", fontWeight: 700, mt: 2.5, mb: 1 },
   "& h3": { fontSize: "1.1rem", fontWeight: 700, mt: 2, mb: 0.75 },
+  // 先頭要素の上マージンは py のパディングと重なるため除去する
+  "& :first-child": { mt: 0 },
   "& p":  { lineHeight: 1.9, mb: 1.5 },
   "& ul, & ol": { pl: 3, mb: 1.5 },
   "& li": { lineHeight: 1.9, mb: 0.25 },
