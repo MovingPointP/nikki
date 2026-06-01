@@ -5,15 +5,7 @@ import { useSettingsStore } from "./settingsStore";
 import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
 import { TEMPLATE_DIR, TEMPLATE_FILE } from "./templateStore";
 import { getDayName } from "../utils/date";
-
-// ────────────────────────────────────────────
-// 定数
-// ────────────────────────────────────────────
-
-// 日記ファイルの保存先サブフォルダ名
-const DIARY_DIR = "diary";
-// 日記ファイル名のパターン（YYYY-MM-DD.md）
-const DIARY_FILE_PATTERN = /^\d{4}-\d{2}-\d{2}\.md$/;
+import { DIARY_DIR, DIARY_FILE_PATTERN } from "../constants/diary";
 
 // ────────────────────────────────────────────
 // 型定義
