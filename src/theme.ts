@@ -44,6 +44,7 @@ const theme = createTheme({
       secondary: "#7A5C47",
       dark: "#F0F2BD",
     },
+    divider: "#7A5C47",
   },
   typography: {
     fontFamily: notoSans,
