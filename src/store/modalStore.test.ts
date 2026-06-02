@@ -21,6 +21,11 @@ describe("openModal", () => {
     expect(useModalStore.getState().activeModal).toBe("calendar");
   });
 
+  it("memories を開くと activeModal が memories になる", () => {
+    useModalStore.getState().openModal("memories");
+    expect(useModalStore.getState().activeModal).toBe("memories");
+  });
+
   it("別のモーダルが開いている状態で openModal すると上書きされる", () => {
     useModalStore.getState().openModal("settings");
     useModalStore.getState().openModal("calendar");
