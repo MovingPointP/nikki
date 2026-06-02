@@ -7,6 +7,7 @@ import TemplatePreviewPane from "../template/TemplatePreviewPane";
 import Sidebar from "./Sidebar";
 import SettingsModal from "../settings/SettingsModal";
 import CalendarModal from "../calendar/CalendarModal";
+import MemoriesModal from "../memories/MemoriesModal";
 import { useUiStore } from "../../store/uiStore";
 import ResizeDivider, { DIVIDER_WIDTH } from "../ui/ResizeDivider";
 
@@ -75,6 +76,7 @@ export default function MainLayout() {
 
       <SettingsModal />
       <CalendarModal />
+      <MemoriesModal />
 
       <Divider orientation="vertical" flexItem />
 

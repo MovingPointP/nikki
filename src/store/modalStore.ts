@@ -5,7 +5,7 @@ import { create } from "zustand";
 // ────────────────────────────────────────────
 
 // 開くことができるモーダルの種別
-export type Modal = "settings" | "calendar";
+export type Modal = "settings" | "calendar" | "memories";
 
 interface ModalState {
   // 現在開いているモーダル（null = すべて閉じている）

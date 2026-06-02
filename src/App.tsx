@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import { useSettingsStore } from "./store/settingsStore";
 import { useDailyStore } from "./store/dailyStore";
+import { useMemoriesStore } from "./store/memoriesStore";
+import { useModalStore } from "./store/modalStore";
 import { toDateString } from "./utils/date";
+
+// 設定変更時に Memories モーダルが再表示されないよう、初回起動時のみ表示するフラグ
+let isFirstLoad = true;
 import LoadingScreen from "./components/layout/LoadingScreen";
 import SettingsPage from "./components/layout/SettingsPage";
 import MainLayout from "./components/layout/MainLayout";
@@ -36,11 +41,27 @@ function App() {
 // savePath が確定したらファイルスキャンを実行し、今日の日記を開く
   // 設定画面で savePath を新たに設定した場合にも再スキャン・再オープンされる
   useEffect(() => {
-    if (savePath) {
-      // 本日の日付を YYYY-MM-DD 形式で初期化
-      const dateStr = toDateString(new Date());
-      scanDiaryFiles().then(() => openDiary(dateStr));
-    }
+    if (!savePath) return;
+    const dateStr = toDateString(new Date());
+    (async () => {
+      try {
+        await scanDiaryFiles();
+        await openDiary(dateStr);
+        const { dateList } = useDailyStore.getState();
+        await useMemoriesStore.getState().initTabs(dateList, dateStr);
+
+        if (isFirstLoad) {
+          isFirstLoad = false;
+          const { tabs } = useMemoriesStore.getState();
+          // アクティブなタブが1つ以上あるときのみモーダルを表示する
+          if (tabs.some((t) => t.isActive)) {
+            useModalStore.getState().openModal("memories");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to initialize diary or memories:", error);
+      }
+    })();
   }, [savePath]);
 
   if (!isLoaded) {
