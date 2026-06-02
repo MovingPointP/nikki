@@ -129,7 +129,7 @@ export const useMemoriesStore = create<MemoriesState>((set) => ({
     // 各タブのコンテンツを並行して読み込む
     const contents = await Promise.all(
       resolvedDates.map((date) =>
-        date && dateSet.has(date)
+        date !== null && dateSet.has(date)
           ? loadContent(savePath, date)
           : Promise.resolve(null)
       )
