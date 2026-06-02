@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSettingsStore } from "../store/settingsStore";
 import { useDailyStore } from "../store/dailyStore";
 import { useMemoriesStore } from "../store/memoriesStore";
@@ -9,10 +9,10 @@ import { toDateString } from "../utils/date";
 // 起動シーケンス
 // ────────────────────────────────────────────
 
-// 設定変更時に Memories モーダルが再表示されないよう、初回起動時のみ表示するフラグ
-let isFirstLoad = true;
-
 export function useAppInit() {
+  // 設定変更時に Memories モーダルが再表示されないよう、初回起動時のみ表示するフラグ
+  const isFirstLoad = useRef(true);
+
   // 起動時に設定ファイルから savePath・zoomLevel を読み込む
   useEffect(() => {
     useSettingsStore.getState().loadSettings();
@@ -33,8 +33,8 @@ export function useAppInit() {
         const { dateList } = useDailyStore.getState();
         await useMemoriesStore.getState().initTabs(dateList, dateStr);
 
-        if (isFirstLoad) {
-          isFirstLoad = false;
+        if (isFirstLoad.current) {
+          isFirstLoad.current = false;
           const { tabs } = useMemoriesStore.getState();
           // アクティブなタブが1つ以上あるときのみモーダルを表示する
           if (tabs.some((t) => t.isActive)) {
