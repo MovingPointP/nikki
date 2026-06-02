@@ -4,6 +4,9 @@ import { useDailyStore } from "./store/dailyStore";
 import { useMemoriesStore } from "./store/memoriesStore";
 import { useModalStore } from "./store/modalStore";
 import { toDateString } from "./utils/date";
+
+// 設定変更時に Memories モーダルが再表示されないよう、初回起動時のみ表示するフラグ
+let isFirstLoad = true;
 import LoadingScreen from "./components/layout/LoadingScreen";
 import SettingsPage from "./components/layout/SettingsPage";
 import MainLayout from "./components/layout/MainLayout";
@@ -41,14 +44,22 @@ function App() {
     if (!savePath) return;
     const dateStr = toDateString(new Date());
     (async () => {
-      await scanDiaryFiles();
-      await openDiary(dateStr);
-      const { dateList } = useDailyStore.getState();
-      await useMemoriesStore.getState().initTabs(dateList, dateStr);
-      const { tabs } = useMemoriesStore.getState();
-      // アクティブなタブが1つ以上あるときのみモーダルを表示する
-      if (tabs.some((t) => t.isActive)) {
-        useModalStore.getState().openModal("memories");
+      try {
+        await scanDiaryFiles();
+        await openDiary(dateStr);
+        const { dateList } = useDailyStore.getState();
+        await useMemoriesStore.getState().initTabs(dateList, dateStr);
+
+        if (isFirstLoad) {
+          isFirstLoad = false;
+          const { tabs } = useMemoriesStore.getState();
+          // アクティブなタブが1つ以上あるときのみモーダルを表示する
+          if (tabs.some((t) => t.isActive)) {
+            useModalStore.getState().openModal("memories");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to initialize diary or memories:", error);
       }
     })();
   }, [savePath]);
