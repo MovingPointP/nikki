@@ -1,12 +1,6 @@
-import { useEffect } from "react";
 import { useSettingsStore } from "./store/settingsStore";
-import { useDailyStore } from "./store/dailyStore";
-import { useMemoriesStore } from "./store/memoriesStore";
-import { useModalStore } from "./store/modalStore";
-import { toDateString } from "./utils/date";
-
-// 設定変更時に Memories モーダルが再表示されないよう、初回起動時のみ表示するフラグ
-let isFirstLoad = true;
+import { useAppInit } from "./hooks/useAppInit";
+import { useZoomKeys } from "./hooks/useZoomKeys";
 import LoadingScreen from "./components/layout/LoadingScreen";
 import SettingsPage from "./components/layout/SettingsPage";
 import MainLayout from "./components/layout/MainLayout";
@@ -16,53 +10,11 @@ import MainLayout from "./components/layout/MainLayout";
 //   savePath 未設定 → SettingsPage（初回セットアップ）
 //   savePath 設定済み → MainLayout
 function App() {
+  useAppInit();
+  useZoomKeys();
+
   const isLoaded = useSettingsStore((s) => s.isLoaded);
   const savePath = useSettingsStore((s) => s.savePath);
-  const { scanDiaryFiles, openDiary } = useDailyStore.getState();
-
-  // 起動時に設定ファイルから savePath・zoomLevel を読み込む
-  useEffect(() => {
-    useSettingsStore.getState().loadSettings();
-  }, []);
-
-  // Ctrl/Cmd+=/+: 拡大  Ctrl/Cmd+-: 縮小  Ctrl/Cmd+0: リセット
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
-      const { zoomIn, zoomOut, zoomReset } = useSettingsStore.getState();
-      if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomIn(); }
-      if (e.key === "-")                  { e.preventDefault(); zoomOut(); }
-      if (e.key === "0")                  { e.preventDefault(); zoomReset(); }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
-
-// savePath が確定したらファイルスキャンを実行し、今日の日記を開く
-  // 設定画面で savePath を新たに設定した場合にも再スキャン・再オープンされる
-  useEffect(() => {
-    if (!savePath) return;
-    const dateStr = toDateString(new Date());
-    (async () => {
-      try {
-        await scanDiaryFiles();
-        await openDiary(dateStr);
-        const { dateList } = useDailyStore.getState();
-        await useMemoriesStore.getState().initTabs(dateList, dateStr);
-
-        if (isFirstLoad) {
-          isFirstLoad = false;
-          const { tabs } = useMemoriesStore.getState();
-          // アクティブなタブが1つ以上あるときのみモーダルを表示する
-          if (tabs.some((t) => t.isActive)) {
-            useModalStore.getState().openModal("memories");
-          }
-        }
-      } catch (error) {
-        console.error("Failed to initialize diary or memories:", error);
-      }
-    })();
-  }, [savePath]);
 
   if (!isLoaded) {
     return <LoadingScreen />;
