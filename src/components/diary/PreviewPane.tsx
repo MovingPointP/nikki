@@ -3,6 +3,8 @@ import { useDailyStore } from "../../store/dailyStore";
 import PaneContainer from "../ui/PaneContainer";
 import PaneHeader from "../ui/PaneHeader";
 import MarkdownPreview from "../ui/MarkdownPreview";
+import TagBadges from "../ui/TagBadges";
+import { parseTags } from "../../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // コンポーネント
@@ -11,6 +13,8 @@ import MarkdownPreview from "../ui/MarkdownPreview";
 export default function PreviewPane() {
   const content = useDailyStore((s) => s.content);
   const currentDate = useDailyStore((s) => s.currentDate);
+
+  const tags = currentDate ? parseTags(content) : [];
 
   return (
     <PaneContainer>
@@ -21,6 +25,9 @@ export default function PreviewPane() {
           プレビュー
         </Typography>
       </PaneHeader>
+
+      {/* タグバッジ */}
+      <TagBadges tags={tags} />
 
       {/* プレビュー本文 */}
       <MarkdownPreview content={currentDate ? content : ""} />

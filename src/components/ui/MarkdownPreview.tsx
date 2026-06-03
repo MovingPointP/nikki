@@ -2,15 +2,7 @@ import { Box } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MARKDOWN_STYLES } from "../../constants/markdownStyles";
-
-// ────────────────────────────────────────────
-// ユーティリティ
-// ────────────────────────────────────────────
-
-// フロントマターを除いた本文を返す
-function stripFrontmatter(raw: string): string {
-  return raw.replace(/^---\r?\n[\s\S]*?\n---\r?\n?/, "");
-}
+import { stripFrontmatter } from "../../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 型定義
@@ -33,7 +25,8 @@ export default function MarkdownPreview({ content }: Props) {
         flex: 1,
         overflow: "auto",
         px: 4,
-        py: 3,
+        pt: 1,
+        pb: 3,
         color: "text.primary",
         ...MARKDOWN_STYLES,
       }}

@@ -16,6 +16,8 @@ import { useMemoriesStore } from "../../store/memoriesStore";
 import { useDailyStore } from "../../store/dailyStore";
 import { useUiStore } from "../../store/uiStore";
 import MarkdownPreview from "../ui/MarkdownPreview";
+import TagBadges from "../ui/TagBadges";
+import { parseTags } from "../../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // コンポーネント
@@ -80,6 +82,7 @@ export default function MemoriesModal() {
 
         {/* プレビュー */}
         <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+          <TagBadges tags={parseTags(activeTab?.content ?? "")} />
           <MarkdownPreview content={activeTab?.content ?? ""} />
         </Box>
       </DialogContent>
