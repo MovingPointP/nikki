@@ -18,7 +18,7 @@ export default function TagBadges({ tags }: Props) {
   if (tags.length === 0) return null;
 
   return (
-    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, px: 4, py: 1 }}>
+    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, px: 4, pt: 2, pb: 0 }}>
       {tags.map((tag) => (
         <Chip
           key={tag}

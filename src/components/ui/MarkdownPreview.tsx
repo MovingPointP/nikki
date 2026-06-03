@@ -25,7 +25,8 @@ export default function MarkdownPreview({ content }: Props) {
         flex: 1,
         overflow: "auto",
         px: 4,
-        py: 3,
+        pt: 1,
+        pb: 3,
         color: "text.primary",
         ...MARKDOWN_STYLES,
       }}
