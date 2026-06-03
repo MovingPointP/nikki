@@ -54,4 +54,14 @@ describe("parseTags", () => {
     const raw = "---\ntags: [  foo  ,  bar  ]\n---\n本文";
     expect(parseTags(raw)).toEqual(["foo", "bar"]);
   });
+
+  it("タグがクォーテーションで囲まれている場合は除去する", () => {
+    const raw = "---\ntags: [\"foo\", 'bar']\n---\n本文";
+    expect(parseTags(raw)).toEqual(["foo", "bar"]);
+  });
+
+  it("重複したタグは除外する", () => {
+    const raw = "---\ntags: [foo, bar, foo]\n---\n本文";
+    expect(parseTags(raw)).toEqual(["foo", "bar"]);
+  });
 });
