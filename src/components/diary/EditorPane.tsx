@@ -9,6 +9,8 @@ import { useSettingsStore } from "../../store/settingsStore";
 import { createEditorExtensions } from "../../lib/editor";
 import PaneContainer from "../ui/PaneContainer";
 import PaneHeader from "../ui/PaneHeader";
+import TagInput from "../ui/TagInput";
+import { parseTags, setTagsInFrontmatter } from "../../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 定数
@@ -36,6 +38,8 @@ export default function EditorPane() {
   const diaryExists = currentDate !== null && dateList.includes(currentDate);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // TagInput に表示するタグ一覧（日記を開いたときに content からパースして同期する）
+  const [tags, setTags] = useState<string[]>([]);
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照
@@ -57,12 +61,15 @@ export default function EditorPane() {
     return () => view.destroy();
   }, []);
 
-  // ── 日記の日付切り替え時にエディタの内容を同期する ────────────────────────
+  // ── 日記の日付切り替え時にエディタの内容とタグを同期する ────────────────────────
   useEffect(() => {
     const view = viewRef.current;
-    if (!view) return;
-
     const content = useDailyStore.getState().content;
+
+    // タグを content からパースして TagInput に反映する
+    setTags(parseTags(content));
+
+    if (!view) return;
     const currentDoc = view.state.doc.toString();
     // CodeMirror のドキュメントとストアの content が異なる場合に実行
     if (currentDoc !== content) {
@@ -74,6 +81,20 @@ export default function EditorPane() {
       });
     }
   }, [currentDate]);
+
+  // ── タグ変更時に frontmatter・ストア・CodeMirror を同期する ────────────────────────
+  const handleTagsChange = (newTags: string[]) => {
+    setTags(newTags);
+    const currentContent = useDailyStore.getState().content;
+    const newContent = setTagsInFrontmatter(currentContent, newTags);
+    useDailyStore.getState().setContent(newContent);
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: newContent },
+      annotations: Transaction.remote.of(true),
+    });
+  };
 
   return (
     <PaneContainer>
@@ -125,6 +146,13 @@ export default function EditorPane() {
         </Box>
 
       </PaneHeader>
+
+      {/* タグ入力欄 */}
+      <TagInput
+        tags={tags}
+        onTagsChange={handleTagsChange}
+        disabled={!currentDate}
+      />
 
       {/* ── 削除確認ダイアログ ──────────────────────── */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
