@@ -43,3 +43,28 @@ export function parseTags(raw: string): string[] {
 
   return [];
 }
+
+// frontmatter の tags フィールドを指定した配列で上書きした文字列を返す
+// frontmatter が存在しない場合は先頭に追加する。tags フィールドがない場合は末尾に追加する
+export function setTagsInFrontmatter(raw: string, tags: string[]): string {
+  const tagLine = `tags: [${tags.join(", ")}]`;
+
+  const match = raw.match(FRONTMATTER_RE);
+  if (!match) {
+    // frontmatter が存在しない場合は先頭に追加する
+    return `---\n${tagLine}\n---\n${raw}`;
+  }
+
+  const frontmatter = match[1];
+
+  // tags フィールドが存在する場合は行ごと置き換える
+  if (/^tags:/m.test(frontmatter)) {
+    const newFrontmatter = frontmatter
+      .replace(/^tags:.*(\n(?:\s+-\s*.+\n?)*)*/m, tagLine);
+    return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`);
+  }
+
+  // tags フィールドがない場合は frontmatter 末尾に追加する
+  const newFrontmatter = `${frontmatter}\n${tagLine}`;
+  return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`);
+}
