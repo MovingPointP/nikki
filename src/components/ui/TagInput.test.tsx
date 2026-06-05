@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TagInput from "./TagInput";
 
@@ -78,6 +78,30 @@ describe("タグ削除", () => {
     render(<TagInput tags={["foo", "bar"]} onTagsChange={onTagsChange} />);
     await userEvent.type(screen.getByRole("textbox"), "{Backspace}");
     expect(onTagsChange).toHaveBeenCalledWith(["foo"]);
+  });
+});
+
+// ────────────────────────────────────────────
+// IME入力
+// ────────────────────────────────────────────
+
+describe("IME入力", () => {
+  it("IME変換中の Enter ではタグが追加されない", async () => {
+    const onTagsChange = vi.fn();
+    render(<TagInput tags={[]} onTagsChange={onTagsChange} />);
+    const input = screen.getByRole("textbox");
+    await userEvent.type(input, "日本語");
+    fireEvent.keyDown(input, { key: "Enter", isComposing: true });
+    expect(onTagsChange).not.toHaveBeenCalled();
+  });
+
+  it("IME変換確定後の Enter ではタグが追加される", async () => {
+    const onTagsChange = vi.fn();
+    render(<TagInput tags={[]} onTagsChange={onTagsChange} />);
+    const input = screen.getByRole("textbox");
+    await userEvent.type(input, "日本語");
+    fireEvent.keyDown(input, { key: "Enter", isComposing: false });
+    expect(onTagsChange).toHaveBeenCalledWith(["日本語"]);
   });
 });
 

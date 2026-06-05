@@ -37,6 +37,9 @@ export default function TagInput({ tags, onTagsChange, disabled }: Props) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // IME変換中（日本語などの確定 Enter）は無視する
+    if (e.nativeEvent.isComposing) return;
+
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       addTag(inputValue);
