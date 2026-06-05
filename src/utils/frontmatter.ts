@@ -48,18 +48,35 @@ export function setTagsInFrontmatter(raw: string, tags: string[]): string {
 
   const frontmatter = match[1];
 
-  // tags フィールドが存在する場合は行ごと置き換える
-  if (/^tags:/m.test(frontmatter)) {
-    // グループ2で末尾改行をキャプチャし、置換後に再付与して後続行との結合を防ぐ
-    // (\r?\n|$) により末尾行（改行なし）でもマッチする
-    const newFrontmatter = frontmatter.replace(
-      /^(tags:[^\r\n]*)(\r?\n|$)/m,
-      tagLine + "$2"
-    );
-    return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`.replace(/\r?\n/g, nl));
+  // 行単位で処理してインライン形式・ブロック形式の両方を安全に置換・削除する
+  const lines = frontmatter.split(/\r?\n/);
+  const newLines: string[] = [];
+  let inserted = false;
+  let inBlockTags = false;
+
+  for (const line of lines) {
+    if (/^tags:\s*\[/.test(line)) {
+      // インライン形式: そのまま置き換え
+      newLines.push(tagLine);
+      inserted = true;
+    } else if (/^tags:\s*$/.test(line)) {
+      // ブロック形式の開始行: インライン形式に置き換え
+      newLines.push(tagLine);
+      inserted = true;
+      inBlockTags = true;
+    } else if (inBlockTags && /^\s*-/.test(line)) {
+      // ブロック形式のタグ要素行: 削除（スキップ）
+      continue;
+    } else {
+      if (inBlockTags) inBlockTags = false;
+      newLines.push(line);
+    }
   }
 
-  // tags フィールドがない場合は frontmatter 末尾に追加する
-  const newFrontmatter = `${frontmatter}\n${tagLine}`;
+  if (!inserted) {
+    newLines.push(tagLine);
+  }
+
+  const newFrontmatter = newLines.join("\n");
   return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`.replace(/\r?\n/g, nl));
 }

@@ -94,4 +94,14 @@ describe("setTagsInFrontmatter", () => {
     const raw = "---\r\ntags: [foo]\r\ntitle: 日記\r\n---\r\n本文";
     expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\r\ntags: [baz]\r\ntitle: 日記\r\n---\r\n本文");
   });
+
+  it("ブロック形式の tags をインライン形式で上書きしブロック行を削除する", () => {
+    const raw = "---\ntags:\n  - foo\n  - bar\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\n---\n本文");
+  });
+
+  it("ブロック形式の tags の後ろに別フィールドがある場合でも正しく置換できる", () => {
+    const raw = "---\ntags:\n  - foo\ntitle: 日記\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
+  });
 });
