@@ -31,11 +31,6 @@ describe("parseTags", () => {
     expect(parseTags(raw)).toEqual(["foo", "bar", "baz"]);
   });
 
-  it("ブロック形式のタグを返す", () => {
-    const raw = "---\ntags:\n  - foo\n  - bar\n---\n本文";
-    expect(parseTags(raw)).toEqual(["foo", "bar"]);
-  });
-
   it("タグが空のインライン形式は空配列を返す", () => {
     const raw = "---\ntags: []\n---\n本文";
     expect(parseTags(raw)).toEqual([]);
@@ -90,18 +85,8 @@ describe("setTagsInFrontmatter", () => {
     expect(setTagsInFrontmatter(raw, ["foo"])).toBe("---\ntitle: 日記\ntags: [foo]\n---\n本文");
   });
 
-  it("ブロック形式の tags も上書きできる", () => {
-    const raw = "---\ntags:\n  - foo\n  - bar\n---\n本文";
-    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\n---\n本文");
-  });
-
   it("tags の後ろに別フィールドがある場合でも改行が保たれる", () => {
     const raw = "---\ntags: [foo]\ntitle: 日記\n---\n本文";
-    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
-  });
-
-  it("ブロック形式 tags の後ろに別フィールドがある場合でも改行が保たれる", () => {
-    const raw = "---\ntags:\n  - foo\n  - bar\ntitle: 日記\n---\n本文";
     expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
   });
 

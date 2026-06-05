@@ -11,7 +11,7 @@ export function stripFrontmatter(raw: string): string {
 }
 
 // フロントマター内の tags フィールドをパースして返す
-// tags: [tag1, tag2] 形式と tags: \n  - tag1 形式の両方に対応
+// tags: [tag1, tag2] のインライン配列形式のみ対応（ブロック形式は無視）
 export function parseTags(raw: string): string[] {
   const match = raw.match(FRONTMATTER_RE);
   if (!match) return [];
@@ -29,18 +29,7 @@ export function parseTags(raw: string): string[] {
         .filter((t) => t.length > 0)
     ));
   }
-
-  // ブロック形式: tags:\n  - tag1\n  - tag2
-  const blockMatch = frontmatter.match(/^tags:\s*\n((?:\s*-\s*.+\n?)*)/m);
-  if (blockMatch) {
-    return Array.from(new Set(
-      blockMatch[1]
-        .split("\n")
-        .map((line) => line.replace(/^\s*-\s*/, "").trim().replace(/^["']|["']$/g, ""))
-        .filter((t) => t.length > 0)
-    ));
-  }
-
+  
   return [];
 }
 
@@ -61,11 +50,11 @@ export function setTagsInFrontmatter(raw: string, tags: string[]): string {
 
   // tags フィールドが存在する場合は行ごと置き換える
   if (/^tags:/m.test(frontmatter)) {
-    // グループ3で末尾改行をキャプチャし、置換後に再付与して後続行との結合を防ぐ
+    // グループ2で末尾改行をキャプチャし、置換後に再付与して後続行との結合を防ぐ
     // (\r?\n|$) により末尾行（改行なし）でもマッチする
     const newFrontmatter = frontmatter.replace(
-      /^(tags:[^\r\n]*(\r?\n\s*-\s*[^\r\n]*)*)(\r?\n|$)/m,
-      tagLine + "$3"
+      /^(tags:[^\r\n]*)(\r?\n|$)/m,
+      tagLine + "$2"
     );
     return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`.replace(/\r?\n/g, nl));
   }
