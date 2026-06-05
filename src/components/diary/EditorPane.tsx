@@ -9,6 +9,8 @@ import { useSettingsStore } from "../../store/settingsStore";
 import { createEditorExtensions } from "../../lib/editor";
 import PaneContainer from "../ui/PaneContainer";
 import PaneHeader from "../ui/PaneHeader";
+import TagInput from "../ui/TagInput";
+import { FRONTMATTER_RE, parseTags, setTagsInFrontmatter } from "../../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 定数
@@ -36,6 +38,8 @@ export default function EditorPane() {
   const diaryExists = currentDate !== null && dateList.includes(currentDate);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // TagInput に表示するタグ一覧（マウント時にストアの現在のコンテンツからパースして初期化する）
+  const [tags, setTags] = useState<string[]>(() => parseTags(useDailyStore.getState().content));
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照
@@ -57,12 +61,33 @@ export default function EditorPane() {
     return () => view.destroy();
   }, []);
 
+  // ── ストアのコンテンツ変更を監視してタグを同期する ────────────────────────
+  // エディタで直接 frontmatter を編集したときも TagInput に反映される
+  useEffect(() => {
+    let prevContent = "";
+    const unsubscribe = useDailyStore.subscribe((state) => {
+      // content が変わっていないときは parseTags の実行をスキップする
+      if (state.content === prevContent) return;
+      prevContent = state.content;
+
+      const newTags = parseTags(state.content);
+      setTags((prev) => {
+        // 配列の内容が同じなら再レンダリングを防ぐために更新しない
+        if (prev.length === newTags.length && prev.every((t, i) => t === newTags[i])) {
+          return prev;
+        }
+        return newTags;
+      });
+    });
+    return unsubscribe;
+  }, []);
+
   // ── 日記の日付切り替え時にエディタの内容を同期する ────────────────────────
   useEffect(() => {
     const view = viewRef.current;
-    if (!view) return;
-
     const content = useDailyStore.getState().content;
+
+    if (!view) return;
     const currentDoc = view.state.doc.toString();
     // CodeMirror のドキュメントとストアの content が異なる場合に実行
     if (currentDoc !== content) {
@@ -74,6 +99,28 @@ export default function EditorPane() {
       });
     }
   }, [currentDate]);
+
+  // ── タグ変更時に frontmatter・ストア・CodeMirror を同期する ────────────────────────
+  const handleTagsChange = (newTags: string[]) => {
+    setTags(newTags);
+    const currentContent = useDailyStore.getState().content;
+    const newContent = setTagsInFrontmatter(currentContent, newTags);
+    useDailyStore.getState().setContent(newContent);
+    const view = viewRef.current;
+    if (!view) return;
+
+    // フロントマター部分のみ置換することでカーソル位置・選択状態を維持する
+    const currentDoc = view.state.doc.toString();
+    const oldMatch = currentDoc.match(FRONTMATTER_RE);
+    const oldLen = oldMatch ? oldMatch[0].length : 0;
+    const newMatch = newContent.match(FRONTMATTER_RE);
+    const newFrontmatter = newMatch ? newMatch[0] : "";
+
+    view.dispatch({
+      changes: { from: 0, to: oldLen, insert: newFrontmatter },
+      annotations: Transaction.remote.of(true),
+    });
+  };
 
   return (
     <PaneContainer>
@@ -125,6 +172,13 @@ export default function EditorPane() {
         </Box>
 
       </PaneHeader>
+
+      {/* タグ入力欄 */}
+      <TagInput
+        tags={tags}
+        onTagsChange={handleTagsChange}
+        disabled={!currentDate}
+      />
 
       {/* ── 削除確認ダイアログ ──────────────────────── */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>

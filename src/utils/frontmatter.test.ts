@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { stripFrontmatter, parseTags } from "./frontmatter";
+import { stripFrontmatter, parseTags, setTagsInFrontmatter } from "./frontmatter";
 
 // ────────────────────────────────────────────
 // stripFrontmatter
@@ -31,11 +31,6 @@ describe("parseTags", () => {
     expect(parseTags(raw)).toEqual(["foo", "bar", "baz"]);
   });
 
-  it("ブロック形式のタグを返す", () => {
-    const raw = "---\ntags:\n  - foo\n  - bar\n---\n本文";
-    expect(parseTags(raw)).toEqual(["foo", "bar"]);
-  });
-
   it("タグが空のインライン形式は空配列を返す", () => {
     const raw = "---\ntags: []\n---\n本文";
     expect(parseTags(raw)).toEqual([]);
@@ -63,5 +58,50 @@ describe("parseTags", () => {
   it("重複したタグは除外する", () => {
     const raw = "---\ntags: [foo, bar, foo]\n---\n本文";
     expect(parseTags(raw)).toEqual(["foo", "bar"]);
+  });
+});
+
+// ────────────────────────────────────────────
+// setTagsInFrontmatter
+// ────────────────────────────────────────────
+
+describe("setTagsInFrontmatter", () => {
+  it("既存の tags フィールドを上書きする", () => {
+    const raw = "---\ntags: [foo]\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["foo", "bar"])).toBe("---\ntags: [foo, bar]\n---\n本文");
+  });
+
+  it("tags を空配列にする", () => {
+    const raw = "---\ntags: [foo]\n---\n本文";
+    expect(setTagsInFrontmatter(raw, [])).toBe("---\ntags: []\n---\n本文");
+  });
+
+  it("frontmatter がない場合は先頭に追加する", () => {
+    expect(setTagsInFrontmatter("本文", ["foo"])).toBe("---\ntags: [foo]\n---\n本文");
+  });
+
+  it("tags フィールドがない frontmatter に tags を追加する", () => {
+    const raw = "---\ntitle: 日記\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["foo"])).toBe("---\ntitle: 日記\ntags: [foo]\n---\n本文");
+  });
+
+  it("tags の後ろに別フィールドがある場合でも改行が保たれる", () => {
+    const raw = "---\ntags: [foo]\ntitle: 日記\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
+  });
+
+  it("CRLF改行のファイルでも tags を上書きできる", () => {
+    const raw = "---\r\ntags: [foo]\r\ntitle: 日記\r\n---\r\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\r\ntags: [baz]\r\ntitle: 日記\r\n---\r\n本文");
+  });
+
+  it("ブロック形式の tags をインライン形式で上書きしブロック行を削除する", () => {
+    const raw = "---\ntags:\n  - foo\n  - bar\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\n---\n本文");
+  });
+
+  it("ブロック形式の tags の後ろに別フィールドがある場合でも正しく置換できる", () => {
+    const raw = "---\ntags:\n  - foo\ntitle: 日記\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
   });
 });
