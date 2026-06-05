@@ -57,6 +57,13 @@ describe("タグ追加", () => {
     await userEvent.type(screen.getByRole("textbox"), "foo{Enter}");
     expect(onTagsChange).not.toHaveBeenCalled();
   });
+
+  it("重複するタグを入力して Enter を押すと入力欄がクリアされる", async () => {
+    render(<TagInput tags={["foo"]} onTagsChange={vi.fn()} />);
+    const input = screen.getByRole("textbox");
+    await userEvent.type(input, "foo{Enter}");
+    expect(input).toHaveValue("");
+  });
 });
 
 // ────────────────────────────────────────────

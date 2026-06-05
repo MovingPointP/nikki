@@ -26,8 +26,10 @@ export default function TagInput({ tags, onTagsChange, disabled }: Props) {
   // ── タグの追加 ────────────────────────
   const addTag = (value: string) => {
     const tag = value.trim();
-    if (tag.length === 0 || tags.includes(tag)) return;
-    onTagsChange([...tags, tag]);
+    if (tag.length === 0) return;
+    if (!tags.includes(tag)) {
+      onTagsChange([...tags, tag]);
+    }
     setInputValue("");
   };
 
