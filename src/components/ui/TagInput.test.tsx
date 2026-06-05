@@ -64,6 +64,15 @@ describe("タグ追加", () => {
     await userEvent.type(input, "foo{Enter}");
     expect(input).toHaveValue("");
   });
+
+  it("カンマを含む値を Enter で確定すると複数タグに分割して追加される", () => {
+    const onTagsChange = vi.fn();
+    render(<TagInput tags={[]} onTagsChange={onTagsChange} />);
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "react, typescript" } });
+    fireEvent.keyDown(input, { key: "Enter", isComposing: false });
+    expect(onTagsChange).toHaveBeenCalledWith(["react", "typescript"]);
+  });
 });
 
 // ────────────────────────────────────────────

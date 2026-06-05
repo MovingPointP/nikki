@@ -25,10 +25,18 @@ export default function TagInput({ tags, onTagsChange, disabled }: Props) {
 
   // ── タグの追加 ────────────────────────
   const addTag = (value: string) => {
-    const tag = value.trim();
-    if (tag.length === 0) return;
-    if (!tags.includes(tag)) {
-      onTagsChange([...tags, tag]);
+    // カンマ（半角・全角・読点）で分割して複数タグを一括追加する
+    // ペーストで "react, typescript" のように入力されてもデータの不整合を防ぐ
+    const newTags = value
+      .split(/[,，、]/)
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+
+    if (newTags.length === 0) return;
+
+    const uniqueNewTags = newTags.filter((t) => !tags.includes(t));
+    if (uniqueNewTags.length > 0) {
+      onTagsChange([...tags, ...uniqueNewTags]);
     }
     setInputValue("");
   };
