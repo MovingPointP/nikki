@@ -61,13 +61,26 @@ export default function EditorPane() {
     return () => view.destroy();
   }, []);
 
-  // ── 日記の日付切り替え時にエディタの内容とタグを同期する ────────────────────────
+  // ── ストアのコンテンツ変更を監視してタグを同期する ────────────────────────
+  // エディタで直接 frontmatter を編集したときも TagInput に反映される
+  useEffect(() => {
+    const unsubscribe = useDailyStore.subscribe((state) => {
+      const newTags = parseTags(state.content);
+      setTags((prev) => {
+        // 配列の内容が同じなら再レンダリングを防ぐために更新しない
+        if (prev.length === newTags.length && prev.every((t, i) => t === newTags[i])) {
+          return prev;
+        }
+        return newTags;
+      });
+    });
+    return unsubscribe;
+  }, []);
+
+  // ── 日記の日付切り替え時にエディタの内容を同期する ────────────────────────
   useEffect(() => {
     const view = viewRef.current;
     const content = useDailyStore.getState().content;
-
-    // タグを content からパースして TagInput に反映する
-    setTags(parseTags(content));
 
     if (!view) return;
     const currentDoc = view.state.doc.toString();
