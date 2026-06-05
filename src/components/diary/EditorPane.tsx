@@ -10,7 +10,7 @@ import { createEditorExtensions } from "../../lib/editor";
 import PaneContainer from "../ui/PaneContainer";
 import PaneHeader from "../ui/PaneHeader";
 import TagInput from "../ui/TagInput";
-import { parseTags, setTagsInFrontmatter } from "../../utils/frontmatter";
+import { FRONTMATTER_RE, parseTags, setTagsInFrontmatter } from "../../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 定数
@@ -90,8 +90,16 @@ export default function EditorPane() {
     useDailyStore.getState().setContent(newContent);
     const view = viewRef.current;
     if (!view) return;
+
+    // フロントマター部分のみ置換することでカーソル位置・選択状態を維持する
+    const currentDoc = view.state.doc.toString();
+    const oldMatch = currentDoc.match(FRONTMATTER_RE);
+    const oldLen = oldMatch ? oldMatch[0].length : 0;
+    const newMatch = newContent.match(FRONTMATTER_RE);
+    const newFrontmatter = newMatch ? newMatch[0] : "";
+
     view.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: newContent },
+      changes: { from: 0, to: oldLen, insert: newFrontmatter },
       annotations: Transaction.remote.of(true),
     });
   };

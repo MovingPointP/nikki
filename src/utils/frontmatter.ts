@@ -3,7 +3,7 @@
 // ────────────────────────────────────────────
 
 // フロントマターブロック（---〜---）を抽出する正規表現
-const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\n---\r?\n?/;
+export const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\n---\r?\n?/;
 
 // フロントマターを除いた本文を返す
 export function stripFrontmatter(raw: string): string {
