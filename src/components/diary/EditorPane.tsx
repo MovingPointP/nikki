@@ -38,8 +38,8 @@ export default function EditorPane() {
   const diaryExists = currentDate !== null && dateList.includes(currentDate);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  // TagInput に表示するタグ一覧（日記を開いたときに content からパースして同期する）
-  const [tags, setTags] = useState<string[]>([]);
+  // TagInput に表示するタグ一覧（マウント時にストアの現在のコンテンツからパースして初期化する）
+  const [tags, setTags] = useState<string[]>(() => parseTags(useDailyStore.getState().content));
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照

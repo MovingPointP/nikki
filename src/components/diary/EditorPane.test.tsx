@@ -217,6 +217,23 @@ describe("削除ダイアログ", () => {
 // ────────────────────────────────────────────
 
 describe("ストアのコンテンツ変更によるタグ同期", () => {
+  it("マウント時点でストアにタグ付きコンテンツがある場合、subscribe を待たずに TagInput にタグが表示される", () => {
+    mockState({ currentDate: "2024-01-01" });
+    // getState().content にタグ付きコンテンツを設定する
+    mockGetState.mockReturnValue({
+      content: "---\ntags: [react, typescript]\n---\n本文",
+      saveDiary: mockSaveDiary,
+      deleteDiary: mockDeleteDiary,
+      setContent: vi.fn(),
+    } as unknown as ReturnType<typeof mockGetState>);
+
+    render(<EditorPane />);
+
+    // subscribe コールバックを呼ばなくても初期表示でタグが表示される
+    expect(screen.getByText("react")).toBeInTheDocument();
+    expect(screen.getByText("typescript")).toBeInTheDocument();
+  });
+
   it("subscribe コールバックにタグ付きコンテンツが渡されると TagInput にタグが表示される", () => {
     mockState({ currentDate: "2024-01-01" });
     render(<EditorPane />);
