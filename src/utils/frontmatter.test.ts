@@ -94,4 +94,19 @@ describe("setTagsInFrontmatter", () => {
     const raw = "---\ntags:\n  - foo\n  - bar\n---\n本文";
     expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\n---\n本文");
   });
+
+  it("tags の後ろに別フィールドがある場合でも改行が保たれる", () => {
+    const raw = "---\ntags: [foo]\ntitle: 日記\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
+  });
+
+  it("ブロック形式 tags の後ろに別フィールドがある場合でも改行が保たれる", () => {
+    const raw = "---\ntags:\n  - foo\n  - bar\ntitle: 日記\n---\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
+  });
+
+  it("CRLF改行のファイルでも tags を上書きできる", () => {
+    const raw = "---\r\ntags: [foo]\r\ntitle: 日記\r\n---\r\n本文";
+    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\r\ntags: [baz]\r\ntitle: 日記\r\n---\r\n本文");
+  });
 });

@@ -47,24 +47,30 @@ export function parseTags(raw: string): string[] {
 // frontmatter の tags フィールドを指定した配列で上書きした文字列を返す
 // frontmatter が存在しない場合は先頭に追加する。tags フィールドがない場合は末尾に追加する
 export function setTagsInFrontmatter(raw: string, tags: string[]): string {
+  // ファイル全体の改行コードを検出して統一する
+  const nl = raw.includes("\r\n") ? "\r\n" : "\n";
   const tagLine = `tags: [${tags.join(", ")}]`;
 
   const match = raw.match(FRONTMATTER_RE);
   if (!match) {
     // frontmatter が存在しない場合は先頭に追加する
-    return `---\n${tagLine}\n---\n${raw}`;
+    return `---\n${tagLine}\n---\n`.replace(/\r?\n/g, nl) + raw;
   }
 
   const frontmatter = match[1];
 
   // tags フィールドが存在する場合は行ごと置き換える
   if (/^tags:/m.test(frontmatter)) {
-    const newFrontmatter = frontmatter
-      .replace(/^tags:.*(\n(?:\s+-\s*.+\n?)*)*/m, tagLine);
-    return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`);
+    // グループ3で末尾改行をキャプチャし、置換後に再付与して後続行との結合を防ぐ
+    // (\r?\n|$) により末尾行（改行なし）でもマッチする
+    const newFrontmatter = frontmatter.replace(
+      /^(tags:[^\r\n]*(\r?\n\s*-\s*[^\r\n]*)*)(\r?\n|$)/m,
+      tagLine + "$3"
+    );
+    return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`.replace(/\r?\n/g, nl));
   }
 
   // tags フィールドがない場合は frontmatter 末尾に追加する
   const newFrontmatter = `${frontmatter}\n${tagLine}`;
-  return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`);
+  return raw.replace(FRONTMATTER_RE, `---\n${newFrontmatter}\n---\n`.replace(/\r?\n/g, nl));
 }
