@@ -64,7 +64,12 @@ export default function EditorPane() {
   // ── ストアのコンテンツ変更を監視してタグを同期する ────────────────────────
   // エディタで直接 frontmatter を編集したときも TagInput に反映される
   useEffect(() => {
+    let prevContent = "";
     const unsubscribe = useDailyStore.subscribe((state) => {
+      // content が変わっていないときは parseTags の実行をスキップする
+      if (state.content === prevContent) return;
+      prevContent = state.content;
+
       const newTags = parseTags(state.content);
       setTags((prev) => {
         // 配列の内容が同じなら再レンダリングを防ぐために更新しない
