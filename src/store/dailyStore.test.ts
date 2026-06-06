@@ -54,6 +54,7 @@ beforeEach(() => {
   useDailyStore.setState({
     dateList: [],
     currentDate: null,
+    frontmatter: "",
     content: "",
     isDirty: false,
     isLoading: false,
@@ -121,10 +122,19 @@ describe("openDiary", () => {
     useDailyStore.setState({ dateList: ["2024-01-01"] });
     mockReadTextFile.mockResolvedValue("今日の日記");
     await useDailyStore.getState().openDiary("2024-01-01");
+    expect(useDailyStore.getState().frontmatter).toBe("");
     expect(useDailyStore.getState().content).toBe("今日の日記");
     expect(useDailyStore.getState().currentDate).toBe("2024-01-01");
     expect(useDailyStore.getState().isDirty).toBe(false);
     expect(useDailyStore.getState().isLoading).toBe(false);
+  });
+
+  it("フロントマターがある既存の日記は frontmatter と content に分割してセットする", async () => {
+    useDailyStore.setState({ dateList: ["2024-01-01"] });
+    mockReadTextFile.mockResolvedValue("---\ntags: [foo, bar]\n---\n今日の日記");
+    await useDailyStore.getState().openDiary("2024-01-01");
+    expect(useDailyStore.getState().frontmatter).toBe("tags: [foo, bar]");
+    expect(useDailyStore.getState().content).toBe("今日の日記");
   });
 
   it("編集中の日記が未保存の場合は再読み込みせず content と isDirty を維持する", async () => {
@@ -192,6 +202,16 @@ describe("saveDiary", () => {
     expect(mockWriteTextFile).toHaveBeenCalledWith("/test/diary/2024-01-01.md", "内容");
   });
 
+  it("frontmatter がある場合は frontmatter と content を結合して保存する", async () => {
+    useDailyStore.setState({ currentDate: "2024-01-01", frontmatter: "tags: [foo]", content: "内容" });
+    mockWriteTextFile.mockResolvedValue(undefined);
+    await useDailyStore.getState().saveDiary();
+    expect(mockWriteTextFile).toHaveBeenCalledWith(
+      "/test/diary/2024-01-01.md",
+      "---\ntags: [foo]\n---\n内容",
+    );
+  });
+
   it("保存前に diary/ フォルダを作成する", async () => {
     useDailyStore.setState({ currentDate: "2024-01-01", content: "" });
     mockWriteTextFile.mockResolvedValue(undefined);
@@ -223,6 +243,31 @@ describe("saveDiary", () => {
 });
 
 // ────────────────────────────────────────────
+// setTags
+// ────────────────────────────────────────────
+
+describe("setTags", () => {
+  it("frontmatter の tags フィールドを更新し isDirty が true になる", () => {
+    useDailyStore.setState({ frontmatter: "tags: [foo]" });
+    useDailyStore.getState().setTags(["foo", "bar"]);
+    expect(useDailyStore.getState().frontmatter).toBe("tags: [foo, bar]");
+    expect(useDailyStore.getState().isDirty).toBe(true);
+  });
+
+  it("frontmatter が空の場合は tags 行を追加する", () => {
+    useDailyStore.setState({ frontmatter: "" });
+    useDailyStore.getState().setTags(["foo"]);
+    expect(useDailyStore.getState().frontmatter).toBe("tags: [foo]");
+  });
+
+  it("tags を空配列にする", () => {
+    useDailyStore.setState({ frontmatter: "tags: [foo]" });
+    useDailyStore.getState().setTags([]);
+    expect(useDailyStore.getState().frontmatter).toBe("tags: []");
+  });
+});
+
+// ────────────────────────────────────────────
 // deleteDiary
 // ────────────────────────────────────────────
 
@@ -241,10 +286,11 @@ describe("deleteDiary", () => {
   });
 
   it("開いている日記を削除するとエディタがリセットされる", async () => {
-    useDailyStore.setState({ currentDate: "2024-01-01", content: "内容", isDirty: true, dateList: ["2024-01-01"] });
+    useDailyStore.setState({ currentDate: "2024-01-01", frontmatter: "tags: [foo]", content: "内容", isDirty: true, dateList: ["2024-01-01"] });
     mockRemove.mockResolvedValue(undefined);
     await useDailyStore.getState().deleteDiary("2024-01-01");
     expect(useDailyStore.getState().currentDate).toBeNull();
+    expect(useDailyStore.getState().frontmatter).toBe("");
     expect(useDailyStore.getState().content).toBe("");
     expect(useDailyStore.getState().isDirty).toBe(false);
   });

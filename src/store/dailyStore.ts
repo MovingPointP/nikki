@@ -6,6 +6,7 @@ import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
 import { TEMPLATE_DIR, TEMPLATE_FILE } from "./templateStore";
 import { getDayName } from "../utils/date";
 import { DIARY_DIR, DIARY_FILE_PATTERN } from "../constants/diary";
+import { splitFrontmatter, mergeFrontmatterAndContent, setTagsInFrontmatter } from "../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 型定義
@@ -18,7 +19,10 @@ interface DailyState {
   // 現在開いている日記の日付（未選択なら null）
   currentDate: string | null;
 
-  // エディタの現在の内容
+  // フロントマター内部文字列（---区切りを含まない）
+  frontmatter: string;
+
+  // エディタの現在の内容（フロントマターを除いた本文のみ）
   content: string;
 
   // 未保存の変更がある場合 true
@@ -38,6 +42,9 @@ interface DailyState {
 
   // エディタの入力内容を更新し、未保存状態にする
   setContent: (content: string) => void;
+
+  // フロントマターの tags フィールドを更新し、未保存状態にする
+  setTags: (tags: string[]) => void;
 
   // 現在の内容をファイルに保存する。新規の場合は dateList にも追加する
   saveDiary: () => Promise<void>;
@@ -79,6 +86,7 @@ async function readTemplateContent(savePath: string): Promise<string> {
 export const useDailyStore = create<DailyState>((set, get) => ({
   dateList: [],
   currentDate: null,
+  frontmatter: "",
   content: "",
   isDirty: false,
   isLoading: false,
@@ -123,17 +131,18 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
     try {
       const fileExists = get().dateList.includes(dateStr);
-      let content: string;
+      let raw: string;
 
       if (fileExists) {
         const filePath = await join(savePath, DIARY_DIR, `${dateStr}.md`);
-        content = await readTextFile(filePath);
+        raw = await readTextFile(filePath);
       } else {
         const template = await readTemplateContent(savePath);
-        content = applyTemplate(template, dateStr);
+        raw = applyTemplate(template, dateStr);
       }
 
-      set({ currentDate: dateStr, content, isDirty: false, isLoading: false });
+      const { frontmatter, content } = splitFrontmatter(raw);
+      set({ currentDate: dateStr, frontmatter, content, isDirty: false, isLoading: false });
     } catch (e) {
       set({ isLoading: false });
       throw e;
@@ -145,10 +154,16 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     set({ content, isDirty: true });
   },
 
+  // ── タグの更新 ────────────────────────
+  setTags: (tags: string[]) => {
+    const frontmatter = setTagsInFrontmatter(get().frontmatter, tags);
+    set({ frontmatter, isDirty: true });
+  },
+
   // ── 日記の保存 ────────────────────────
   saveDiary: async () => {
     const savePath = getSavePath();
-    const { currentDate, content, dateList } = get();
+    const { currentDate, frontmatter, content, dateList } = get();
     if (!savePath || !currentDate) return;
 
     set({ isSaving: true });
@@ -159,7 +174,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
       // diary/ フォルダが存在しない場合に備えて作成する
       await mkdir(diaryPath, { recursive: true });
-      await writeTextFile(filePath, content);
+      await writeTextFile(filePath, mergeFrontmatterAndContent(frontmatter, content));
 
       // 新規作成の場合は dateList に追加してソートを維持する
       const newDateList = dateList.includes(currentDate)
@@ -184,7 +199,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
     // 削除した日記を開いている場合はエディタをリセットする
     const editorReset = currentDate === dateStr
-      ? { currentDate: null, content: "", isDirty: false }
+      ? { currentDate: null, frontmatter: "", content: "", isDirty: false }
       : {};
 
     set({ dateList: dateList.filter((d) => d !== dateStr), ...editorReset });
