@@ -1,9 +1,5 @@
 // テンプレートファイル（rejour/templates/default.md）が存在しない場合のフォールバック
-export const DEFAULT_TEMPLATE = `---
-tags: []
----
-
-# {{date}}（{{day}}）
+export const DEFAULT_TEMPLATE = `# {{date}}（{{day}}）
 
 ## 気分
 ☆☆☆☆☆
