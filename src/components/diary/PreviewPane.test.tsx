@@ -12,9 +12,9 @@ import { useDailyStore } from "../../store/dailyStore";
 const mockUseDailyStore = vi.mocked(useDailyStore);
 
 // セレクタを受け取って状態から値を返すヘルパー
-function mockState(state: { content: string; currentDate: string | null }) {
+function mockState(state: { content: string; frontmatter?: string; currentDate: string | null }) {
   mockUseDailyStore.mockImplementation((selector) =>
-    selector(state as Parameters<typeof selector>[0])
+    selector({ frontmatter: "", ...state } as Parameters<typeof selector>[0])
   );
 }
 
