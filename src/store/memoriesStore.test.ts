@@ -81,10 +81,19 @@ describe("initTabs", () => {
     expect(monthAgoTab.content).toBe("日記の内容");
   });
 
-  it("日記が存在しないタブは isActive: false になり content が null になる", async () => {
+  it("フロントマターがある日記は frontmatter と content に分割して保存される", async () => {
+    mockReadTextFile.mockResolvedValue("---\ntags: [foo]\n---\n日記本文");
+    await useMemoriesStore.getState().initTabs(["2026-05-03"], "2026-06-03");
+    const monthAgoTab = useMemoriesStore.getState().tabs[0];
+    expect(monthAgoTab.frontmatter).toBe("tags: [foo]");
+    expect(monthAgoTab.content).toBe("日記本文");
+  });
+
+  it("日記が存在しないタブは isActive: false になり frontmatter と content が null になる", async () => {
     await useMemoriesStore.getState().initTabs([], "2026-06-03");
     const tabs = useMemoriesStore.getState().tabs;
     expect(tabs[0].isActive).toBe(false);
+    expect(tabs[0].frontmatter).toBeNull();
     expect(tabs[0].content).toBeNull();
   });
 
@@ -128,9 +137,9 @@ describe("setActiveTabIndex", () => {
   beforeEach(() => {
     useMemoriesStore.setState({
       tabs: [
-        { label: "1か月前",  date: "2026-05-03", content: "内容", isActive: true  },
-        { label: "1年前",    date: "2025-06-03", content: null,   isActive: false },
-        { label: "ランダム", date: "2026-01-01", content: "内容", isActive: true  },
+        { label: "1か月前",  date: "2026-05-03", frontmatter: "", content: "内容", isActive: true  },
+        { label: "1年前",    date: "2025-06-03", frontmatter: null, content: null, isActive: false },
+        { label: "ランダム", date: "2026-01-01", frontmatter: "", content: "内容", isActive: true  },
       ],
       activeTabIndex: 0,
     });

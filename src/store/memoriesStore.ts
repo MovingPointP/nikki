@@ -4,6 +4,7 @@ import { join } from "@tauri-apps/api/path";
 import { useSettingsStore } from "./settingsStore";
 import { toDateString } from "../utils/date";
 import { DIARY_DIR } from "../constants/diary";
+import { splitFrontmatter } from "../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 定数
@@ -27,7 +28,9 @@ export interface MemoriesTab {
   label: string;
   // 表示対象の日付（YYYY-MM-DD）。ランダムで候補なしの場合は null
   date: string | null;
-  // 読み込み済みの日記本文。日記が存在しない場合は null
+  // フロントマター内部文字列。日記が存在しない場合は null
+  frontmatter: string | null;
+  // 日記本文。日記が存在しない場合は null
   content: string | null;
   // 対応する日記ファイルが存在するか
   isActive: boolean;
@@ -135,12 +138,17 @@ export const useMemoriesStore = create<MemoriesState>((set) => ({
       )
     );
 
-    const tabs: MemoriesTab[] = TAB_DEFINITIONS.map((def, i) => ({
-      label:    def.label,
-      date:     resolvedDates[i],
-      content:  contents[i],
-      isActive: contents[i] !== null,
-    }));
+    const tabs: MemoriesTab[] = TAB_DEFINITIONS.map((def, i) => {
+      const raw = contents[i];
+      const { frontmatter, content } = raw !== null ? splitFrontmatter(raw) : { frontmatter: null, content: null };
+      return {
+        label: def.label,
+        date:  resolvedDates[i],
+        frontmatter,
+        content,
+        isActive: raw !== null,
+      };
+    });
 
     // アクティブなタブのうち最初のものを選ぶ（「1か月前」が先頭のため自然に優先される）
     const activeTabIndex = tabs.findIndex((t) => t.isActive);

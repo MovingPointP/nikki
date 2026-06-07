@@ -82,7 +82,7 @@ export default function MemoriesModal() {
 
         {/* プレビュー */}
         <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
-          <TagBadges tags={parseTags(activeTab?.content ?? "")} />
+          <TagBadges tags={parseTags(activeTab?.frontmatter ?? "")} />
           <MarkdownPreview content={activeTab?.content ?? ""} />
         </Box>
       </DialogContent>
