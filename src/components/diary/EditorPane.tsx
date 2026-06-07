@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { EditorState, Transaction } from "@codemirror/state";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
@@ -10,18 +10,7 @@ import { createEditorExtensions } from "../../lib/editor";
 import PaneContainer from "../ui/PaneContainer";
 import PaneHeader from "../ui/PaneHeader";
 import TagInput from "../ui/TagInput";
-import { FRONTMATTER_RE, parseTags, setTagsInFrontmatter } from "../../utils/frontmatter";
-
-// ────────────────────────────────────────────
-// 定数
-// ────────────────────────────────────────────
-
-// ── エディタ拡張 ────────────────────────
-const editorExtensions = createEditorExtensions(
-  // Ctrl+S で日記を保存する
-  () => useDailyStore.getState().saveDiary(),
-  (content) => useDailyStore.getState().setContent(content),
-);
+import { parseTags, hasFrontmatter } from "../../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // コンポーネント
@@ -38,12 +27,27 @@ export default function EditorPane() {
   const diaryExists = currentDate !== null && dateList.includes(currentDate);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  // TagInput に表示するタグ一覧（マウント時にストアの現在のコンテンツからパースして初期化する）
-  const [tags, setTags] = useState<string[]>(() => parseTags(useDailyStore.getState().content));
+  const [saveError, setSaveError] = useState<string | null>(null);
+  // TagInput に表示するタグ一覧（マウント時にストアの frontmatter からパースして初期化する）
+  const [tags, setTags] = useState<string[]>(() => parseTags(useDailyStore.getState().frontmatter));
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照
   const viewRef = useRef<EditorView | null>(null);
+
+  // ── エディタ拡張 ────────────────────────
+  // Ctrl+S 保存前にフロントマター混入チェックを行うため、setSaveError をクロージャで捕捉する
+  const editorExtensions = useMemo(() => createEditorExtensions(
+    () => {
+      const { content } = useDailyStore.getState();
+      if (hasFrontmatter(content)) {
+        setSaveError("本文にフロントマターを含めることはできません");
+        return;
+      }
+      useDailyStore.getState().saveDiary();
+    },
+    (content) => useDailyStore.getState().setContent(content),
+  ), []);
 
   // ── エディタの初期化 ────────────────────────
   useEffect(() => {
@@ -61,31 +65,10 @@ export default function EditorPane() {
     return () => view.destroy();
   }, []);
 
-  // ── ストアのコンテンツ変更を監視してタグを同期する ────────────────────────
-  // エディタで直接 frontmatter を編集したときも TagInput に反映される
-  useEffect(() => {
-    let prevContent = "";
-    const unsubscribe = useDailyStore.subscribe((state) => {
-      // content が変わっていないときは parseTags の実行をスキップする
-      if (state.content === prevContent) return;
-      prevContent = state.content;
-
-      const newTags = parseTags(state.content);
-      setTags((prev) => {
-        // 配列の内容が同じなら再レンダリングを防ぐために更新しない
-        if (prev.length === newTags.length && prev.every((t, i) => t === newTags[i])) {
-          return prev;
-        }
-        return newTags;
-      });
-    });
-    return unsubscribe;
-  }, []);
-
-  // ── 日記の日付切り替え時にエディタの内容を同期する ────────────────────────
+  // ── 日記の日付切り替え時にエディタの内容とタグを同期する ────────────────────────
   useEffect(() => {
     const view = viewRef.current;
-    const content = useDailyStore.getState().content;
+    const { content, frontmatter } = useDailyStore.getState();
 
     if (!view) return;
     const currentDoc = view.state.doc.toString();
@@ -98,28 +81,14 @@ export default function EditorPane() {
         annotations: Transaction.remote.of(true),
       });
     }
+    // openDiary 後に frontmatter からタグを再初期化する
+    setTags(parseTags(frontmatter));
   }, [currentDate]);
 
-  // ── タグ変更時に frontmatter・ストア・CodeMirror を同期する ────────────────────────
+  // ── タグ変更時にストアの frontmatter を更新する ────────────────────────
   const handleTagsChange = (newTags: string[]) => {
     setTags(newTags);
-    const currentContent = useDailyStore.getState().content;
-    const newContent = setTagsInFrontmatter(currentContent, newTags);
-    useDailyStore.getState().setContent(newContent);
-    const view = viewRef.current;
-    if (!view) return;
-
-    // フロントマター部分のみ置換することでカーソル位置・選択状態を維持する
-    const currentDoc = view.state.doc.toString();
-    const oldMatch = currentDoc.match(FRONTMATTER_RE);
-    const oldLen = oldMatch ? oldMatch[0].length : 0;
-    const newMatch = newContent.match(FRONTMATTER_RE);
-    const newFrontmatter = newMatch ? newMatch[0] : "";
-
-    view.dispatch({
-      changes: { from: 0, to: oldLen, insert: newFrontmatter },
-      annotations: Transaction.remote.of(true),
-    });
+    useDailyStore.getState().setTags(newTags);
   };
 
   return (
@@ -148,7 +117,14 @@ export default function EditorPane() {
               <IconButton
                 size="small"
                 disabled={!currentDate || isSaving || !savePath}
-                onClick={() => useDailyStore.getState().saveDiary()}
+                onClick={() => {
+                  const { content } = useDailyStore.getState();
+                  if (hasFrontmatter(content)) {
+                    setSaveError("本文にフロントマターを含めることはできません");
+                    return;
+                  }
+                  useDailyStore.getState().saveDiary();
+                }}
                 sx={{ p: 0 }}
               >
                 <SaveIcon fontSize="small" />
@@ -179,6 +155,17 @@ export default function EditorPane() {
         onTagsChange={handleTagsChange}
         disabled={!currentDate}
       />
+
+      {/* ── フロントマター混入エラーダイアログ ──────────────────────── */}
+      <Dialog open={saveError !== null} onClose={() => setSaveError(null)}>
+        <DialogTitle>保存できません</DialogTitle>
+        <DialogContent>
+          <Typography>{saveError}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSaveError(null)}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* ── 削除確認ダイアログ ──────────────────────── */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
