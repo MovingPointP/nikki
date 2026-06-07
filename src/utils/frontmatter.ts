@@ -10,7 +10,9 @@ export const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 export function splitFrontmatter(raw: string): { frontmatter: string; content: string } {
   const match = raw.match(FRONTMATTER_RE);
   if (!match) return { frontmatter: "", content: raw };
-  return { frontmatter: match[1], content: raw.slice(match[0].length) };
+  // フロントマターと本文の間にある区切り用の空行（\n 1つ）を取り除く
+  const content = raw.slice(match[0].length).replace(/^\r?\n/, "");
+  return { frontmatter: match[1], content };
 }
 
 // フロントマター内部文字列と本文を結合してファイル文字列を返す

@@ -17,6 +17,11 @@ describe("splitFrontmatter", () => {
     expect(splitFrontmatter(raw)).toEqual({ frontmatter: "tags: [foo]", content: "本文" });
   });
 
+  it("フロントマターと本文の間の空行を除去する", () => {
+    const raw = "---\ntags: [foo]\n---\n\n# 見出し";
+    expect(splitFrontmatter(raw)).toEqual({ frontmatter: "tags: [foo]", content: "# 見出し" });
+  });
+
   it("フロントマターがない場合は frontmatter を空文字にする", () => {
     expect(splitFrontmatter("本文のみ")).toEqual({ frontmatter: "", content: "本文のみ" });
   });
