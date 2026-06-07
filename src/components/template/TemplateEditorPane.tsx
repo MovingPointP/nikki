@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import { useTemplateStore } from "../../store/templateStore";
 import { useSettingsStore } from "../../store/settingsStore";
@@ -10,30 +10,34 @@ import PaneContainer from "../ui/PaneContainer";
 import PaneHeader from "../ui/PaneHeader";
 
 // ────────────────────────────────────────────
-// 定数
-// ────────────────────────────────────────────
-
-// ── エディタ拡張 ────────────────────────
-const editorExtensions = createEditorExtensions(
-  // Ctrl+S でテンプレートを保存する
-  () => useTemplateStore.getState().saveTemplate(),
-  (content) => useTemplateStore.getState().setContent(content),
-);
-
-// ────────────────────────────────────────────
 // コンポーネント
 // ────────────────────────────────────────────
 
 export default function TemplateEditorPane() {
   // content の更新で再レンダリングしないよう、isDirty だけを購読する
-  const isDirty = useTemplateStore((s) => s.isDirty);
+  const isDirty  = useTemplateStore((s) => s.isDirty);
   const isSaving = useTemplateStore((s) => s.isSaving);
   const savePath = useSettingsStore((s) => s.savePath);
+
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // CodeMirror を差し込む DOM 要素への参照
   const containerRef = useRef<HTMLDivElement>(null);
   // CodeMirror インスタンスへの参照
   const viewRef = useRef<EditorView | null>(null);
+
+  // ── エディタ拡張 ────────────────────────
+  // Ctrl+S 保存前にフロントマター混入チェックを行うため、setSaveError をクロージャで捕捉する
+  const editorExtensions = useMemo(() => createEditorExtensions(
+    async () => {
+      try {
+        await useTemplateStore.getState().saveTemplate();
+      } catch (e) {
+        setSaveError(e instanceof Error ? e.message : "保存できません");
+      }
+    },
+    (content) => useTemplateStore.getState().setContent(content),
+  ), []);
 
   // ── エディタの初期化とテンプレートの読み込み ────────────────────────
   useEffect(() => {
@@ -86,7 +90,13 @@ export default function TemplateEditorPane() {
             <IconButton
               size="small"
               disabled={isSaving || !savePath}
-              onClick={() => useTemplateStore.getState().saveTemplate()}
+              onClick={async () => {
+                try {
+                  await useTemplateStore.getState().saveTemplate();
+                } catch (e) {
+                  setSaveError(e instanceof Error ? e.message : "保存できません");
+                }
+              }}
               sx={{ p: 0 }}
             >
               <SaveIcon fontSize="small" />
@@ -95,6 +105,17 @@ export default function TemplateEditorPane() {
         </Tooltip>
 
       </PaneHeader>
+
+      {/* ── フロントマター混入エラーダイアログ ──────────────────────── */}
+      <Dialog open={saveError !== null} onClose={() => setSaveError(null)}>
+        <DialogTitle>保存できません</DialogTitle>
+        <DialogContent>
+          <Typography>{saveError}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSaveError(null)}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
 
       <Box sx={{ flex: 1, minHeight: 0 }}>
         {/* containerRef は常にマウントしておくことで useEffect でのエディタ初期化を保証する */}
