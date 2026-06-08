@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { EditorState, Transaction } from "@codemirror/state";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
@@ -36,8 +36,8 @@ export default function EditorPane() {
   const viewRef = useRef<EditorView | null>(null);
 
   // ── 保存処理 ────────────────────────
-  // setSaveError をクロージャで捕捉するため useMemo で安定化する
-  const handleSave = useMemo(() => () => {
+  // setSaveError をクロージャで捕捉するため useCallback で安定化する
+  const handleSave = useCallback(() => {
     const { content } = useDailyStore.getState();
     if (hasFrontmatter(content)) {
       setSaveError("本文にフロントマターを含めることはできません");

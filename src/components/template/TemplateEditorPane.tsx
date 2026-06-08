@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip, Typography } from "@mui/material";
@@ -27,8 +27,8 @@ export default function TemplateEditorPane() {
   const viewRef = useRef<EditorView | null>(null);
 
   // ── 保存処理 ────────────────────────
-  // setSaveError をクロージャで捕捉するため useMemo で安定化する
-  const handleSave = useMemo(() => async () => {
+  // setSaveError をクロージャで捕捉するため useCallback で安定化する
+  const handleSave = useCallback(async () => {
     try {
       await useTemplateStore.getState().saveTemplate();
     } catch (e) {
