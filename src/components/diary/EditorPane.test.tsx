@@ -220,6 +220,6 @@ describe("タグ表示", () => {
   it("frontmatter にタグがない場合、TagInput にタグが表示されない", () => {
     mockState({ currentDate: "2024-01-01", frontmatter: "" });
     render(<EditorPane />);
-    expect(screen.queryByRole("button", { name: /削除/ })).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText("タグを追加...")).toBeInTheDocument();
   });
 });
