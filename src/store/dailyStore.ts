@@ -6,7 +6,7 @@ import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
 import { TEMPLATE_DIR, TEMPLATE_FILE } from "./templateStore";
 import { getDayName } from "../utils/date";
 import { DIARY_DIR, DIARY_FILE_PATTERN } from "../constants/diary";
-import { splitFrontmatter, mergeFrontmatterAndContent, setTagsInFrontmatter } from "../utils/frontmatter";
+import { splitFrontmatter, mergeFrontmatterAndContent, setTagsInFrontmatter, parseTags } from "../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 型定義
@@ -24,6 +24,9 @@ interface DailyState {
 
   // エディタの現在の内容（フロントマターを除いた本文のみ）
   content: string;
+
+  // タグ名 → そのタグを持つ日付一覧（YYYY-MM-DD）のインデックス
+  tagIndex: Record<string, string[]>;
 
   // 未保存の変更がある場合 true
   isDirty: boolean;
@@ -57,6 +60,31 @@ interface DailyState {
 // ユーティリティ
 // ────────────────────────────────────────────
 
+// tagIndex の指定日付のエントリを新しいタグ一覧で差分更新して返す
+function updateTagIndexForDate(
+  tagIndex: Record<string, string[]>,
+  dateStr: string,
+  newTags: string[]
+): Record<string, string[]> {
+  const updated: Record<string, string[]> = {};
+
+  // 既存のインデックスから dateStr を除去する。空になったタグエントリは削除する
+  for (const [tag, dates] of Object.entries(tagIndex)) {
+    const filtered = dates.filter((d) => d !== dateStr);
+    if (filtered.length > 0) updated[tag] = filtered;
+  }
+
+  // 新しいタグに dateStr を追加する（ソート順を維持する）
+  for (const tag of newTags) {
+    const existing = updated[tag] ?? [];
+    if (!existing.includes(dateStr)) {
+      updated[tag] = [...existing, dateStr].sort();
+    }
+  }
+
+  return updated;
+}
+
 // settingsStore から保存パスを取得する
 function getSavePath(): string | null {
   return useSettingsStore.getState().savePath;
@@ -88,6 +116,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
   currentDate: null,
   frontmatter: "",
   content: "",
+  tagIndex: {},
   isDirty: false,
   isLoading: false,
   isSaving: false,
@@ -104,7 +133,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     try {
       entries = await readDir(diaryPath);
     } catch {
-      set({ dateList: [] });
+      set({ dateList: [], tagIndex: {} });
       return;
     }
 
@@ -116,7 +145,30 @@ export const useDailyStore = create<DailyState>((set, get) => ({
       .map((name) => name.replace(".md", ""))
       .sort();
 
-    set({ dateList: dates });
+    // 全ファイルのフロントマターを並行して読み込み、タグを収集する
+    const tagEntries = await Promise.all(
+      dates.map(async (dateStr) => {
+        try {
+          const filePath = await join(savePath, DIARY_DIR, `${dateStr}.md`);
+          const raw = await readTextFile(filePath);
+          const { frontmatter } = splitFrontmatter(raw);
+          return { dateStr, tags: parseTags(frontmatter) };
+        } catch {
+          return { dateStr, tags: [] as string[] };
+        }
+      })
+    );
+
+    // dates はソート済みなので各タグのリストも自動的に昇順になる
+    const tagIndex: Record<string, string[]> = {};
+    for (const { dateStr, tags } of tagEntries) {
+      for (const tag of tags) {
+        if (!tagIndex[tag]) tagIndex[tag] = [];
+        tagIndex[tag].push(dateStr);
+      }
+    }
+
+    set({ dateList: dates, tagIndex });
   },
 
   // ── 日記を開く ────────────────────────
@@ -180,7 +232,9 @@ export const useDailyStore = create<DailyState>((set, get) => ({
       const newDateList = dateList.includes(currentDate)
         ? dateList
         : [...dateList, currentDate].sort();
-      set({ isSaving: false, isDirty: false, dateList: newDateList });
+      // 保存後のフロントマターからタグを取得し tagIndex を更新する
+      const newTagIndex = updateTagIndexForDate(get().tagIndex, currentDate, parseTags(frontmatter));
+      set({ isSaving: false, isDirty: false, dateList: newDateList, tagIndex: newTagIndex });
     } catch (e) {
       set({ isSaving: false });
       throw e;
@@ -195,13 +249,14 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     const filePath = await join(savePath, DIARY_DIR, `${dateStr}.md`);
     await remove(filePath);
 
-    const { currentDate, dateList } = get();
+    const { currentDate, dateList, tagIndex } = get();
 
     // 削除した日記を開いている場合はエディタをリセットする
     const editorReset = currentDate === dateStr
       ? { currentDate: null, frontmatter: "", content: "", isDirty: false }
       : {};
 
-    set({ dateList: dateList.filter((d) => d !== dateStr), ...editorReset });
+    const newTagIndex = updateTagIndexForDate(tagIndex, dateStr, []);
+    set({ dateList: dateList.filter((d) => d !== dateStr), tagIndex: newTagIndex, ...editorReset });
   },
 }));
