@@ -3,6 +3,7 @@ import { readTextFile, writeTextFile, mkdir } from "@tauri-apps/plugin-fs";
 import { join } from "@tauri-apps/api/path";
 import { useSettingsStore } from "./settingsStore";
 import { DEFAULT_TEMPLATE } from "../constants/defaultTemplate";
+import { splitFrontmatter, hasFrontmatter } from "../utils/frontmatter";
 
 // ────────────────────────────────────────────
 // 定数
@@ -18,7 +19,7 @@ export const TEMPLATE_FILE = "default.md";
 // ────────────────────────────────────────────
 
 interface TemplateState {
-  // エディタの現在の内容
+  // エディタの現在の内容（フロントマターを除いた本文のみ）
   content: string;
 
   // 未保存の変更がある場合 true
@@ -31,12 +32,14 @@ interface TemplateState {
   isLoaded: boolean;
 
   // テンプレートファイルを読み込む。ファイルがなければ DEFAULT_TEMPLATE を使う
+  // フロントマターが含まれている場合は自動的に除去する
   loadTemplate: () => Promise<void>;
 
   // エディタの入力内容を更新し、未保存状態にする
   setContent: (content: string) => void;
 
   // 現在の内容をテンプレートファイルに保存する
+  // content にフロントマターが含まれている場合はエラーをスローする
   saveTemplate: () => Promise<void>;
 }
 
@@ -67,7 +70,9 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
     try {
       const filePath = await join(savePath, TEMPLATE_DIR, TEMPLATE_FILE);
-      const content = await readTextFile(filePath);
+      const raw = await readTextFile(filePath);
+      // フロントマターが含まれている場合は本文のみを使う
+      const content = splitFrontmatter(raw).content;
       set({ content, isDirty: false, isLoaded: true });
     } catch {
       // ファイルが存在しない場合はデフォルトテンプレートで初期化する
@@ -85,6 +90,13 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
     const savePath = getSavePath();
     if (!savePath) return;
 
+    const { content } = get();
+
+    // テンプレートにフロントマターが含まれている場合は保存しない
+    if (hasFrontmatter(content)) {
+      throw new Error("テンプレートにフロントマターを含めることはできません");
+    }
+
     set({ isSaving: true });
 
     try {
@@ -93,7 +105,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
       // templates/ フォルダが存在しない場合に備えて作成する
       await mkdir(dirPath, { recursive: true });
-      await writeTextFile(filePath, get().content);
+      await writeTextFile(filePath, content);
 
       set({ isSaving: false, isDirty: false });
     } catch (e) {

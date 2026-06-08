@@ -68,6 +68,12 @@ describe("loadTemplate", () => {
     expect(useTemplateStore.getState().isDirty).toBe(false);
   });
 
+  it("フロントマターが含まれている場合は本文のみをセットする", async () => {
+    mockReadTextFile.mockResolvedValue("---\ntags: []\n---\n# テンプレート");
+    await useTemplateStore.getState().loadTemplate();
+    expect(useTemplateStore.getState().content).toBe("# テンプレート");
+  });
+
   it("テンプレートファイルが存在しないときは DEFAULT_TEMPLATE を使う", async () => {
     mockReadTextFile.mockRejectedValue(new Error("not found"));
     await useTemplateStore.getState().loadTemplate();
@@ -116,6 +122,12 @@ describe("saveTemplate", () => {
     mockWriteTextFile.mockResolvedValue(undefined);
     await useTemplateStore.getState().saveTemplate();
     expect(mockMkdir).toHaveBeenCalledWith("/test/templates", { recursive: true });
+  });
+
+  it("content にフロントマターが含まれている場合はエラーをスローする", async () => {
+    useTemplateStore.setState({ content: "---\ntags: []\n---\n本文" });
+    await expect(useTemplateStore.getState().saveTemplate()).rejects.toThrow();
+    expect(mockWriteTextFile).not.toHaveBeenCalled();
   });
 
   it("保存後に isDirty と isSaving が false になる", async () => {

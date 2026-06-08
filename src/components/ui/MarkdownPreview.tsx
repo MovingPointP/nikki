@@ -2,14 +2,12 @@ import { Box } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MARKDOWN_STYLES } from "../../constants/markdownStyles";
-import { stripFrontmatter } from "../../utils/frontmatter";
-
 // ────────────────────────────────────────────
 // 型定義
 // ────────────────────────────────────────────
 
 interface Props {
-  // レンダリングするMarkdownテキスト（フロントマター含む可）
+  // レンダリングするMarkdownテキスト
   content: string;
 }
 
@@ -33,7 +31,7 @@ export default function MarkdownPreview({ content }: Props) {
     >
       {content && (
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {stripFrontmatter(content)}
+          {content}
         </ReactMarkdown>
       )}
     </Box>

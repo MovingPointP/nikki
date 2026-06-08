@@ -11,10 +11,11 @@ import { parseTags } from "../../utils/frontmatter";
 // ────────────────────────────────────────────
 
 export default function PreviewPane() {
-  const content = useDailyStore((s) => s.content);
+  const content    = useDailyStore((s) => s.content);
+  const frontmatter = useDailyStore((s) => s.frontmatter);
   const currentDate = useDailyStore((s) => s.currentDate);
 
-  const tags = currentDate ? parseTags(content) : [];
+  const tags = currentDate ? parseTags(frontmatter) : [];
 
   return (
     <PaneContainer>

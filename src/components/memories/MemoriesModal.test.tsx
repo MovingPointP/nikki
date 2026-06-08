@@ -38,15 +38,15 @@ const mockOpenDiary = vi.fn();
 // ────────────────────────────────────────────
 
 const TABS_ACTIVE = [
-  { label: "1か月前",  date: "2026-05-03", content: "1か月前の日記",  isActive: true  },
-  { label: "1年前",    date: "2025-06-03", content: null,              isActive: false },
-  { label: "ランダム", date: "2026-01-01", content: "ランダムの日記",  isActive: true  },
+  { label: "1か月前",  date: "2026-05-03", frontmatter: "",   content: "1か月前の日記",  isActive: true  },
+  { label: "1年前",    date: "2025-06-03", frontmatter: null, content: null,              isActive: false },
+  { label: "ランダム", date: "2026-01-01", frontmatter: "",   content: "ランダムの日記",  isActive: true  },
 ];
 
 const TABS_NONE_ACTIVE = [
-  { label: "1か月前",  date: null, content: null, isActive: false },
-  { label: "1年前",    date: null, content: null, isActive: false },
-  { label: "ランダム", date: null, content: null, isActive: false },
+  { label: "1か月前",  date: null, frontmatter: null, content: null, isActive: false },
+  { label: "1年前",    date: null, frontmatter: null, content: null, isActive: false },
+  { label: "ランダム", date: null, frontmatter: null, content: null, isActive: false },
 ];
 
 beforeEach(() => {

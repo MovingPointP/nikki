@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import EditorPane from "./EditorPane";
 
@@ -34,10 +34,9 @@ vi.mock("@codemirror/commands", () => ({
 }));
 
 vi.mock("../../store/dailyStore", () => ({
-  // Object.assign で getState・subscribe を型に含める
+  // Object.assign で getState を型に含める
   useDailyStore: Object.assign(vi.fn(), {
     getState: vi.fn(),
-    subscribe: vi.fn(() => () => {}),
   }),
 }));
 
@@ -53,30 +52,24 @@ const mockGetState         = vi.mocked((useDailyStore as any).getState as () => 
 
 const mockSaveDiary   = vi.fn();
 const mockDeleteDiary = vi.fn();
-// subscribe コールバックとアンサブスクライブ関数の参照を保持する
-let capturedSubscriber: ((state: { content: string }) => void) | null = null;
-const mockUnsubscribe = vi.fn();
+const mockSetTags     = vi.fn();
 
-function mockState(state: { currentDate: string | null; isDirty?: boolean; isSaving?: boolean; dateList?: string[]; savePath?: string | null }) {
-  const full = { isDirty: false, isSaving: false, dateList: [], content: "", savePath: "/test", ...state };
+function mockState(state: { currentDate: string | null; isDirty?: boolean; isSaving?: boolean; dateList?: string[]; savePath?: string | null; frontmatter?: string }) {
+  const full = { isDirty: false, isSaving: false, dateList: [], content: "", frontmatter: "", savePath: "/test", ...state };
   mockUseDailyStore.mockImplementation((selector) => selector(full as unknown as Parameters<typeof selector>[0]));
   mockUseSettingsStore.mockImplementation((selector) => selector({ savePath: full.savePath } as Parameters<typeof selector>[0]));
   mockGetState.mockReturnValue({
-    content: "",
+    frontmatter: full.frontmatter,
+    content: full.content ?? "",
     saveDiary: mockSaveDiary,
     deleteDiary: mockDeleteDiary,
     setContent: vi.fn(),
+    setTags: mockSetTags,
   } as unknown as ReturnType<typeof mockGetState>);
-  // subscribe コールバックをキャプチャしてアンサブスクライブ関数を返す
-  (useDailyStore as any).subscribe.mockImplementation((cb: (state: { content: string }) => void) => {
-    capturedSubscriber = cb;
-    return mockUnsubscribe;
-  });
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  capturedSubscriber = null;
   mockState({ currentDate: null });
 });
 
@@ -213,59 +206,20 @@ describe("削除ダイアログ", () => {
 });
 
 // ────────────────────────────────────────────
-// ストアのコンテンツ変更によるタグ同期
+// タグ表示
 // ────────────────────────────────────────────
 
-describe("ストアのコンテンツ変更によるタグ同期", () => {
-  it("マウント時点でストアにタグ付きコンテンツがある場合、subscribe を待たずに TagInput にタグが表示される", () => {
-    mockState({ currentDate: "2024-01-01" });
-    // getState().content にタグ付きコンテンツを設定する
-    mockGetState.mockReturnValue({
-      content: "---\ntags: [react, typescript]\n---\n本文",
-      saveDiary: mockSaveDiary,
-      deleteDiary: mockDeleteDiary,
-      setContent: vi.fn(),
-    } as unknown as ReturnType<typeof mockGetState>);
-
+describe("タグ表示", () => {
+  it("マウント時点でストアに frontmatter がある場合、TagInput にタグが表示される", () => {
+    mockState({ currentDate: "2024-01-01", frontmatter: "tags: [react, typescript]" });
     render(<EditorPane />);
-
-    // subscribe コールバックを呼ばなくても初期表示でタグが表示される
     expect(screen.getByText("react")).toBeInTheDocument();
     expect(screen.getByText("typescript")).toBeInTheDocument();
   });
 
-  it("subscribe コールバックにタグ付きコンテンツが渡されると TagInput にタグが表示される", () => {
-    mockState({ currentDate: "2024-01-01" });
+  it("frontmatter にタグがない場合、TagInput にタグが表示されない", () => {
+    mockState({ currentDate: "2024-01-01", frontmatter: "" });
     render(<EditorPane />);
-
-    act(() => {
-      capturedSubscriber!({ content: "---\ntags: [react, typescript]\n---\n本文" });
-    });
-
-    expect(screen.getByText("react")).toBeInTheDocument();
-    expect(screen.getByText("typescript")).toBeInTheDocument();
-  });
-
-  it("subscribe コールバックにタグなしコンテンツが渡されると TagInput のタグが消える", () => {
-    mockState({ currentDate: "2024-01-01" });
-    render(<EditorPane />);
-
-    act(() => {
-      capturedSubscriber!({ content: "---\ntags: [react]\n---\n本文" });
-    });
-    expect(screen.getByText("react")).toBeInTheDocument();
-
-    act(() => {
-      capturedSubscriber!({ content: "タグなしの本文" });
-    });
-    expect(screen.queryByText("react")).not.toBeInTheDocument();
-  });
-
-  it("アンマウント時に unsubscribe が呼ばれる", () => {
-    mockState({ currentDate: "2024-01-01" });
-    const { unmount } = render(<EditorPane />);
-    unmount();
-
-    expect(mockUnsubscribe).toHaveBeenCalled();
+    expect(screen.getByPlaceholderText("タグを追加...")).toBeInTheDocument();
   });
 });

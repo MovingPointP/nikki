@@ -1,23 +1,76 @@
 import { describe, it, expect } from "vitest";
-import { stripFrontmatter, parseTags, setTagsInFrontmatter } from "./frontmatter";
+import {
+  splitFrontmatter,
+  mergeFrontmatterAndContent,
+  hasFrontmatter,
+  parseTags,
+  setTagsInFrontmatter,
+} from "./frontmatter";
 
 // ────────────────────────────────────────────
-// stripFrontmatter
+// splitFrontmatter
 // ────────────────────────────────────────────
 
-describe("stripFrontmatter", () => {
-  it("フロントマターを除いた本文を返す", () => {
+describe("splitFrontmatter", () => {
+  it("フロントマターと本文を分割して返す", () => {
     const raw = "---\ntags: [foo]\n---\n本文";
-    expect(stripFrontmatter(raw)).toBe("本文");
+    expect(splitFrontmatter(raw)).toEqual({ frontmatter: "tags: [foo]", content: "本文" });
   });
 
-  it("フロントマターがない場合はそのまま返す", () => {
-    expect(stripFrontmatter("本文のみ")).toBe("本文のみ");
+  it("フロントマターと本文の間の空行を除去する", () => {
+    const raw = "---\ntags: [foo]\n---\n\n# 見出し";
+    expect(splitFrontmatter(raw)).toEqual({ frontmatter: "tags: [foo]", content: "# 見出し" });
   });
 
-  it("CRLF改行のフロントマターを除去できる", () => {
-    const raw = "---\r\ntags: [foo]\r\n---\r\n本文";
-    expect(stripFrontmatter(raw)).toBe("本文");
+  it("フロントマターがない場合は frontmatter を空文字にする", () => {
+    expect(splitFrontmatter("本文のみ")).toEqual({ frontmatter: "", content: "本文のみ" });
+  });
+
+  it("CRLF改行のフロントマターを分割できる", () => {
+    const raw = "---\r\ntags: [foo]\r\ntitle: 日記\r\n---\r\n本文";
+    expect(splitFrontmatter(raw)).toEqual({
+      frontmatter: "tags: [foo]\r\ntitle: 日記",
+      content: "本文",
+    });
+  });
+});
+
+// ────────────────────────────────────────────
+// mergeFrontmatterAndContent
+// ────────────────────────────────────────────
+
+describe("mergeFrontmatterAndContent", () => {
+  it("フロントマターと本文を結合する", () => {
+    expect(mergeFrontmatterAndContent("tags: [foo]", "本文")).toBe("---\ntags: [foo]\n---\n本文");
+  });
+
+  it("frontmatter が空なら content のみ返す", () => {
+    expect(mergeFrontmatterAndContent("", "本文")).toBe("本文");
+  });
+
+  it("content が CRLF の場合はフロントマター区切りも CRLF にする", () => {
+    const content = "本文\r\n続き";
+    expect(mergeFrontmatterAndContent("tags: [foo]", content)).toBe(
+      "---\r\ntags: [foo]\r\n---\r\n本文\r\n続き"
+    );
+  });
+});
+
+// ────────────────────────────────────────────
+// hasFrontmatter
+// ────────────────────────────────────────────
+
+describe("hasFrontmatter", () => {
+  it("フロントマターを含む場合は true を返す", () => {
+    expect(hasFrontmatter("---\ntags: [foo]\n---\n本文")).toBe(true);
+  });
+
+  it("フロントマターがない場合は false を返す", () => {
+    expect(hasFrontmatter("本文のみ")).toBe(false);
+  });
+
+  it("本文中に --- がある場合は false を返す（先頭でない）", () => {
+    expect(hasFrontmatter("本文\n---\n区切り")).toBe(false);
   });
 });
 
@@ -27,37 +80,35 @@ describe("stripFrontmatter", () => {
 
 describe("parseTags", () => {
   it("インライン形式のタグを返す", () => {
-    const raw = "---\ntags: [foo, bar, baz]\n---\n本文";
-    expect(parseTags(raw)).toEqual(["foo", "bar", "baz"]);
+    expect(parseTags("tags: [foo, bar, baz]")).toEqual(["foo", "bar", "baz"]);
   });
 
   it("タグが空のインライン形式は空配列を返す", () => {
-    const raw = "---\ntags: []\n---\n本文";
-    expect(parseTags(raw)).toEqual([]);
+    expect(parseTags("tags: []")).toEqual([]);
   });
 
-  it("フロントマターがない場合は空配列を返す", () => {
-    expect(parseTags("本文のみ")).toEqual([]);
+  it("フロントマターが空文字の場合は空配列を返す", () => {
+    expect(parseTags("")).toEqual([]);
   });
 
-  it("tags フィールドがないフロントマターは空配列を返す", () => {
-    const raw = "---\ntitle: 日記\n---\n本文";
-    expect(parseTags(raw)).toEqual([]);
+  it("tags フィールドがない場合は空配列を返す", () => {
+    expect(parseTags("title: 日記")).toEqual([]);
   });
 
   it("タグ前後の空白を除去する", () => {
-    const raw = "---\ntags: [  foo  ,  bar  ]\n---\n本文";
-    expect(parseTags(raw)).toEqual(["foo", "bar"]);
+    expect(parseTags("tags: [  foo  ,  bar  ]")).toEqual(["foo", "bar"]);
   });
 
   it("タグがクォーテーションで囲まれている場合は除去する", () => {
-    const raw = "---\ntags: [\"foo\", 'bar']\n---\n本文";
-    expect(parseTags(raw)).toEqual(["foo", "bar"]);
+    expect(parseTags('tags: ["foo", \'bar\']')).toEqual(["foo", "bar"]);
   });
 
   it("重複したタグは除外する", () => {
-    const raw = "---\ntags: [foo, bar, foo]\n---\n本文";
-    expect(parseTags(raw)).toEqual(["foo", "bar"]);
+    expect(parseTags("tags: [foo, bar, foo]")).toEqual(["foo", "bar"]);
+  });
+
+  it("複数フィールドがある場合も tags だけを返す", () => {
+    expect(parseTags("title: 日記\ntags: [foo, bar]")).toEqual(["foo", "bar"]);
   });
 });
 
@@ -67,41 +118,30 @@ describe("parseTags", () => {
 
 describe("setTagsInFrontmatter", () => {
   it("既存の tags フィールドを上書きする", () => {
-    const raw = "---\ntags: [foo]\n---\n本文";
-    expect(setTagsInFrontmatter(raw, ["foo", "bar"])).toBe("---\ntags: [foo, bar]\n---\n本文");
+    expect(setTagsInFrontmatter("tags: [foo]", ["foo", "bar"])).toBe("tags: [foo, bar]");
   });
 
   it("tags を空配列にする", () => {
-    const raw = "---\ntags: [foo]\n---\n本文";
-    expect(setTagsInFrontmatter(raw, [])).toBe("---\ntags: []\n---\n本文");
+    expect(setTagsInFrontmatter("tags: [foo]", [])).toBe("tags: []");
   });
 
-  it("frontmatter がない場合は先頭に追加する", () => {
-    expect(setTagsInFrontmatter("本文", ["foo"])).toBe("---\ntags: [foo]\n---\n本文");
+  it("frontmatter が空の場合は tags 行を返す", () => {
+    expect(setTagsInFrontmatter("", ["foo"])).toBe("tags: [foo]");
   });
 
   it("tags フィールドがない frontmatter に tags を追加する", () => {
-    const raw = "---\ntitle: 日記\n---\n本文";
-    expect(setTagsInFrontmatter(raw, ["foo"])).toBe("---\ntitle: 日記\ntags: [foo]\n---\n本文");
+    expect(setTagsInFrontmatter("title: 日記", ["foo"])).toBe("title: 日記\ntags: [foo]");
   });
 
   it("tags の後ろに別フィールドがある場合でも改行が保たれる", () => {
-    const raw = "---\ntags: [foo]\ntitle: 日記\n---\n本文";
-    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
-  });
-
-  it("CRLF改行のファイルでも tags を上書きできる", () => {
-    const raw = "---\r\ntags: [foo]\r\ntitle: 日記\r\n---\r\n本文";
-    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\r\ntags: [baz]\r\ntitle: 日記\r\n---\r\n本文");
+    expect(setTagsInFrontmatter("tags: [foo]\ntitle: 日記", ["baz"])).toBe("tags: [baz]\ntitle: 日記");
   });
 
   it("ブロック形式の tags をインライン形式で上書きしブロック行を削除する", () => {
-    const raw = "---\ntags:\n  - foo\n  - bar\n---\n本文";
-    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\n---\n本文");
+    expect(setTagsInFrontmatter("tags:\n  - foo\n  - bar", ["baz"])).toBe("tags: [baz]");
   });
 
   it("ブロック形式の tags の後ろに別フィールドがある場合でも正しく置換できる", () => {
-    const raw = "---\ntags:\n  - foo\ntitle: 日記\n---\n本文";
-    expect(setTagsInFrontmatter(raw, ["baz"])).toBe("---\ntags: [baz]\ntitle: 日記\n---\n本文");
+    expect(setTagsInFrontmatter("tags:\n  - foo\ntitle: 日記", ["baz"])).toBe("tags: [baz]\ntitle: 日記");
   });
 });
