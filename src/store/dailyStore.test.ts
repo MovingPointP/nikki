@@ -51,11 +51,14 @@ function dirEntry(name: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetState.mockReturnValue({ savePath: "/test" } as ReturnType<typeof useSettingsStore.getState>);
+  // readTextFile のデフォルトは空文字列（各テストで上書き可能）
+  mockReadTextFile.mockResolvedValue("");
   useDailyStore.setState({
     dateList: [],
     currentDate: null,
     frontmatter: "",
     content: "",
+    tagIndex: {},
     isDirty: false,
     isLoading: false,
     isSaving: false,
@@ -103,6 +106,27 @@ describe("scanDiaryFiles", () => {
       "2024-02-10",
       "2024-03-01",
     ]);
+  });
+
+  it("タグを持つファイルから tagIndex を構築する", async () => {
+    mockReadDir.mockResolvedValue([
+      dirEntry("2024-01-01.md"),
+      dirEntry("2024-02-01.md"),
+    ]);
+    mockReadTextFile
+      .mockResolvedValueOnce("---\ntags: [旅行, 映画]\n---\n内容")
+      .mockResolvedValueOnce("---\ntags: [旅行]\n---\n内容");
+    await useDailyStore.getState().scanDiaryFiles();
+    expect(useDailyStore.getState().tagIndex).toEqual({
+      旅行: ["2024-01-01", "2024-02-01"],
+      映画: ["2024-01-01"],
+    });
+  });
+
+  it("diary/ フォルダが存在しないときは tagIndex が空になる", async () => {
+    mockReadDir.mockRejectedValue(new Error("not found"));
+    await useDailyStore.getState().scanDiaryFiles();
+    expect(useDailyStore.getState().tagIndex).toEqual({});
   });
 });
 
@@ -240,6 +264,37 @@ describe("saveDiary", () => {
     await useDailyStore.getState().saveDiary();
     expect(useDailyStore.getState().dateList).toEqual(["2024-01-01"]);
   });
+
+  it("保存後に tagIndex が更新される（タグ削除）", async () => {
+    useDailyStore.setState({
+      currentDate: "2024-01-01",
+      frontmatter: "tags: [旅行, 映画]",
+      content: "内容",
+      dateList: ["2024-01-01"],
+      tagIndex: { 旅行: ["2024-01-01"], 映画: ["2024-01-01"] },
+    });
+    mockWriteTextFile.mockResolvedValue(undefined);
+    useDailyStore.getState().setTags(["旅行"]);
+    await useDailyStore.getState().saveDiary();
+    expect(useDailyStore.getState().tagIndex).toEqual({
+      旅行: ["2024-01-01"],
+    });
+  });
+
+  it("新規保存時に tagIndex にタグが追加される", async () => {
+    useDailyStore.setState({
+      currentDate: "2024-01-02",
+      frontmatter: "tags: [旅行]",
+      content: "内容",
+      dateList: ["2024-01-01"],
+      tagIndex: { 旅行: ["2024-01-01"] },
+    });
+    mockWriteTextFile.mockResolvedValue(undefined);
+    await useDailyStore.getState().saveDiary();
+    expect(useDailyStore.getState().tagIndex).toEqual({
+      旅行: ["2024-01-01", "2024-01-02"],
+    });
+  });
 });
 
 // ────────────────────────────────────────────
@@ -301,5 +356,17 @@ describe("deleteDiary", () => {
     await useDailyStore.getState().deleteDiary("2024-01-01");
     expect(useDailyStore.getState().currentDate).toBe("2024-01-02");
     expect(useDailyStore.getState().content).toBe("内容");
+  });
+
+  it("削除後に tagIndex からその日付のタグが除去される", async () => {
+    useDailyStore.setState({
+      dateList: ["2024-01-01", "2024-01-02"],
+      tagIndex: { 旅行: ["2024-01-01", "2024-01-02"], 映画: ["2024-01-01"] },
+    });
+    mockRemove.mockResolvedValue(undefined);
+    await useDailyStore.getState().deleteDiary("2024-01-01");
+    expect(useDailyStore.getState().tagIndex).toEqual({
+      旅行: ["2024-01-02"],
+    });
   });
 });
