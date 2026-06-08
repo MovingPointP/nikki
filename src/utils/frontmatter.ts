@@ -21,7 +21,7 @@ export function splitFrontmatter(raw: string): { frontmatter: string; content: s
 export function mergeFrontmatterAndContent(frontmatter: string, content: string): string {
   if (!frontmatter) return content;
   const nl = content.includes("\r\n") ? "\r\n" : "\n";
-  const fm = frontmatter.replace(/\n/g, nl);
+  const fm = frontmatter.replace(/\r?\n/g, nl);
   return `---${nl}${fm}${nl}---${nl}${content}`;
 }
 
