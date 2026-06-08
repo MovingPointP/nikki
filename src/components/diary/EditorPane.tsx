@@ -35,19 +35,22 @@ export default function EditorPane() {
   // CodeMirror インスタンスへの参照
   const viewRef = useRef<EditorView | null>(null);
 
+  // ── 保存処理 ────────────────────────
+  // setSaveError をクロージャで捕捉するため useMemo で安定化する
+  const handleSave = useMemo(() => () => {
+    const { content } = useDailyStore.getState();
+    if (hasFrontmatter(content)) {
+      setSaveError("本文にフロントマターを含めることはできません");
+      return;
+    }
+    useDailyStore.getState().saveDiary();
+  }, []);
+
   // ── エディタ拡張 ────────────────────────
-  // Ctrl+S 保存前にフロントマター混入チェックを行うため、setSaveError をクロージャで捕捉する
   const editorExtensions = useMemo(() => createEditorExtensions(
-    () => {
-      const { content } = useDailyStore.getState();
-      if (hasFrontmatter(content)) {
-        setSaveError("本文にフロントマターを含めることはできません");
-        return;
-      }
-      useDailyStore.getState().saveDiary();
-    },
+    handleSave,
     (content) => useDailyStore.getState().setContent(content),
-  ), []);
+  ), [handleSave]);
 
   // ── エディタの初期化 ────────────────────────
   useEffect(() => {
@@ -117,14 +120,7 @@ export default function EditorPane() {
               <IconButton
                 size="small"
                 disabled={!currentDate || isSaving || !savePath}
-                onClick={() => {
-                  const { content } = useDailyStore.getState();
-                  if (hasFrontmatter(content)) {
-                    setSaveError("本文にフロントマターを含めることはできません");
-                    return;
-                  }
-                  useDailyStore.getState().saveDiary();
-                }}
+                onClick={handleSave}
                 sx={{ p: 0 }}
               >
                 <SaveIcon fontSize="small" />

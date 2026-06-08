@@ -26,18 +26,21 @@ export default function TemplateEditorPane() {
   // CodeMirror インスタンスへの参照
   const viewRef = useRef<EditorView | null>(null);
 
+  // ── 保存処理 ────────────────────────
+  // setSaveError をクロージャで捕捉するため useMemo で安定化する
+  const handleSave = useMemo(() => async () => {
+    try {
+      await useTemplateStore.getState().saveTemplate();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "保存できません");
+    }
+  }, []);
+
   // ── エディタ拡張 ────────────────────────
-  // Ctrl+S 保存前にフロントマター混入チェックを行うため、setSaveError をクロージャで捕捉する
   const editorExtensions = useMemo(() => createEditorExtensions(
-    async () => {
-      try {
-        await useTemplateStore.getState().saveTemplate();
-      } catch (e) {
-        setSaveError(e instanceof Error ? e.message : "保存できません");
-      }
-    },
+    handleSave,
     (content) => useTemplateStore.getState().setContent(content),
-  ), []);
+  ), [handleSave]);
 
   // ── エディタの初期化とテンプレートの読み込み ────────────────────────
   useEffect(() => {
@@ -90,13 +93,7 @@ export default function TemplateEditorPane() {
             <IconButton
               size="small"
               disabled={isSaving || !savePath}
-              onClick={async () => {
-                try {
-                  await useTemplateStore.getState().saveTemplate();
-                } catch (e) {
-                  setSaveError(e instanceof Error ? e.message : "保存できません");
-                }
-              }}
+              onClick={handleSave}
               sx={{ p: 0 }}
             >
               <SaveIcon fontSize="small" />
