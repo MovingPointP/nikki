@@ -137,3 +137,60 @@ describe("disabled 状態", () => {
     expect(within(fooChip).queryByTestId("CancelIcon")).not.toBeInTheDocument();
   });
 });
+
+// ────────────────────────────────────────────
+// 候補表示
+// ────────────────────────────────────────────
+
+describe("候補表示", () => {
+  it("入力に前方一致する候補が表示される", async () => {
+    render(<TagInput tags={[]} onTagsChange={vi.fn()} allTags={["旅行", "映画", "旅館"]} />);
+    await userEvent.type(screen.getByRole("textbox"), "旅");
+    expect(screen.getByText("旅行")).toBeInTheDocument();
+    expect(screen.getByText("旅館")).toBeInTheDocument();
+    expect(screen.queryByText("映画")).not.toBeInTheDocument();
+  });
+
+  it("入力が空のとき候補が表示されない", () => {
+    render(<TagInput tags={[]} onTagsChange={vi.fn()} allTags={["旅行", "映画"]} />);
+    fireEvent.focus(screen.getByRole("textbox"));
+    expect(screen.queryByText("旅行")).not.toBeInTheDocument();
+    expect(screen.queryByText("映画")).not.toBeInTheDocument();
+  });
+
+  it("すでに追加済みのタグは候補に表示されない", async () => {
+    render(<TagInput tags={["旅行"]} onTagsChange={vi.fn()} allTags={["旅行", "旅館"]} />);
+    await userEvent.type(screen.getByRole("textbox"), "旅");
+    // ドロップダウンリスト内に絞って確認する（チップとして表示中の「旅行」と混同しないため）
+    const dropdown = screen.getByRole("list");
+    expect(within(dropdown).queryByText("旅行")).not.toBeInTheDocument();
+    expect(within(dropdown).getByText("旅館")).toBeInTheDocument();
+  });
+
+  it("候補をクリックするとタグが追加される", async () => {
+    const onTagsChange = vi.fn();
+    render(<TagInput tags={[]} onTagsChange={onTagsChange} allTags={["旅行"]} />);
+    await userEvent.type(screen.getByRole("textbox"), "旅");
+    await userEvent.click(screen.getByText("旅行"));
+    expect(onTagsChange).toHaveBeenCalledWith(["旅行"]);
+  });
+
+  it("ArrowDown + Enter でキーボード選択できる", async () => {
+    const onTagsChange = vi.fn();
+    render(<TagInput tags={[]} onTagsChange={onTagsChange} allTags={["旅行", "旅館"]} />);
+    const input = screen.getByRole("textbox");
+    await userEvent.type(input, "旅");
+    fireEvent.keyDown(input, { key: "ArrowDown", isComposing: false });
+    fireEvent.keyDown(input, { key: "Enter", isComposing: false });
+    expect(onTagsChange).toHaveBeenCalledWith(["旅行"]);
+  });
+
+  it("Escape で候補リストが閉じる", async () => {
+    render(<TagInput tags={[]} onTagsChange={vi.fn()} allTags={["旅行"]} />);
+    const input = screen.getByRole("textbox");
+    await userEvent.type(input, "旅");
+    expect(screen.getByText("旅行")).toBeInTheDocument();
+    fireEvent.keyDown(input, { key: "Escape", isComposing: false });
+    expect(screen.queryByText("旅行")).not.toBeInTheDocument();
+  });
+});
