@@ -55,7 +55,7 @@ const mockDeleteDiary = vi.fn();
 const mockSetTags     = vi.fn();
 
 function mockState(state: { currentDate: string | null; isDirty?: boolean; isSaving?: boolean; dateList?: string[]; savePath?: string | null; frontmatter?: string }) {
-  const full = { isDirty: false, isSaving: false, dateList: [], content: "", frontmatter: "", savePath: "/test", ...state };
+  const full = { isDirty: false, isSaving: false, dateList: [], content: "", frontmatter: "", tagIndex: {}, savePath: "/test", ...state };
   mockUseDailyStore.mockImplementation((selector) => selector(full as unknown as Parameters<typeof selector>[0]));
   mockUseSettingsStore.mockImplementation((selector) => selector({ savePath: full.savePath } as Parameters<typeof selector>[0]));
   mockGetState.mockReturnValue({

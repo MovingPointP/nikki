@@ -22,7 +22,10 @@ export default function EditorPane() {
   const isDirty     = useDailyStore((s) => s.isDirty);
   const isSaving    = useDailyStore((s) => s.isSaving);
   const dateList    = useDailyStore((s) => s.dateList);
+  const tagIndex    = useDailyStore((s) => s.tagIndex);
   const savePath    = useSettingsStore((s) => s.savePath);
+  // tagIndex のキー一覧を TagInput の候補として渡す
+  const allTags     = useMemo(() => Object.keys(tagIndex), [tagIndex]);
   // ディスク上に日記ファイルが存在する場合のみ削除ボタンを有効にする
   const diaryExists = currentDate !== null && dateList.includes(currentDate);
 
@@ -150,6 +153,7 @@ export default function EditorPane() {
         tags={tags}
         onTagsChange={handleTagsChange}
         disabled={!currentDate}
+        allTags={allTags}
       />
 
       {/* ── フロントマター混入エラーダイアログ ──────────────────────── */}
