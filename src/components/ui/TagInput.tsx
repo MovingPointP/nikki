@@ -76,21 +76,21 @@ export default function TagInput({ tags, onTagsChange, allTags = [], disabled }:
     if (e.nativeEvent.isComposing) return;
 
     if (isOpen) {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlightedIndex((i) => Math.min(i + 1, suggestions.length - 1));
-      return;
-    }
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightedIndex((i) => Math.max(i - 1, -1));
-      return;
-    }
-    if (e.key === "Escape") {
+      if (e.key === "ArrowDown") {
         e.preventDefault();
-      setHighlightedIndex(-1);
-      setInputValue("");
-      return;
+        setHighlightedIndex((i) => Math.min(i + 1, suggestions.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlightedIndex((i) => Math.max(i - 1, -1));
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setHighlightedIndex(-1);
+        setInputValue("");
+        return;
       }
     }
     if (e.key === "Enter" || e.key === ",") {
@@ -166,6 +166,8 @@ export default function TagInput({ tags, onTagsChange, allTags = [], disabled }:
       {isOpen && (
         <Paper
           elevation={4}
+          // blur を防いで onClick が確実に発火するようにする（スクロールバー含む全域）
+          onMouseDown={(e) => e.preventDefault()}
           sx={{
             position: "absolute",
             top: "100%",
@@ -181,8 +183,6 @@ export default function TagInput({ tags, onTagsChange, allTags = [], disabled }:
               <ListItemButton
                 key={tag}
                 selected={index === highlightedIndex}
-                // blur を防いで onClick が確実に発火するようにする
-                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => addTag(tag)}
                 sx={{ fontSize: "0.85rem", py: 0.5 }}
               >
