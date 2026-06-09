@@ -75,6 +75,7 @@ export default function TagInput({ tags, onTagsChange, allTags = [], disabled }:
     // IME変換中（日本語などの確定 Enter）は無視する
     if (e.nativeEvent.isComposing) return;
 
+    if (isOpen) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlightedIndex((i) => Math.min(i + 1, suggestions.length - 1));
@@ -86,9 +87,11 @@ export default function TagInput({ tags, onTagsChange, allTags = [], disabled }:
       return;
     }
     if (e.key === "Escape") {
+        e.preventDefault();
       setHighlightedIndex(-1);
       setInputValue("");
       return;
+      }
     }
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
