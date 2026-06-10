@@ -5,7 +5,7 @@ import { create } from "zustand";
 // ────────────────────────────────────────────
 
 // メインエリアの表示モード
-export type AppMode = "diary" | "template";
+export type AppMode = "diary" | "template" | "search";
 
 interface UiState {
   // メインエリアの現在の表示モード
