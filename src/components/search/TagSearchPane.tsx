@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Box, Chip, List, ListItemButton, Typography } from "@mui/material";
 import { useDailyStore } from "../../store/dailyStore";
 import { useUiStore } from "../../store/uiStore";
+import { useSearchStore } from "../../store/searchStore";
 import PaneContainer from "../ui/PaneContainer";
 import PaneHeader from "../ui/PaneHeader";
 
@@ -9,12 +9,11 @@ import PaneHeader from "../ui/PaneHeader";
 // コンポーネント
 // ────────────────────────────────────────────
 
-// タグを選択して一致する日記の一覧を表示するペイン
+// タグ選択と検索結果の日付リストを表示するペイン
 // 日付をクリックするとその日記を開いて diary モードに切り替える
 export default function TagSearchPane() {
-  const tagIndex = useDailyStore((s) => s.tagIndex);
-  // 選択中のタグ（null = 未選択）
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const tagIndex   = useDailyStore((s) => s.tagIndex);
+  const selectedTag = useSearchStore((s) => s.selectedTag);
 
   const allTags = Object.keys(tagIndex).sort();
   // 選択中タグに対応する日付一覧（新しい順）
@@ -56,7 +55,7 @@ export default function TagSearchPane() {
               key={tag}
               label={tag}
               size="small"
-              onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+              onClick={() => useSearchStore.getState().setSelectedTag(tag === selectedTag ? null : tag)}
               sx={{
                 backgroundColor: tag === selectedTag ? "primary.main" : "transparent",
                 color: tag === selectedTag ? "primary.contrastText" : "text.primary",
@@ -97,6 +96,8 @@ export default function TagSearchPane() {
                 <ListItemButton
                   key={date}
                   onClick={() => handleDateClick(date)}
+                  onMouseEnter={() => useSearchStore.getState().setHoveredDate(date)}
+                  onMouseLeave={() => useSearchStore.getState().setHoveredDate(null)}
                   sx={{ px: 2, py: 0.75 }}
                 >
                   <Typography variant="body2">{date}</Typography>
