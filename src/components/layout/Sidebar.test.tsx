@@ -33,17 +33,28 @@ describe("モーダル", () => {
 // ────────────────────────────────────────────
 
 describe("モード切り替えボタン", () => {
-  it("diary モードのとき DashboardIcon が表示され BookIcon は表示されない", () => {
-    render(<Sidebar />);
-    expect(screen.getByTestId("DashboardIcon")).toBeInTheDocument();
-    expect(screen.queryByTestId("BookIcon")).not.toBeInTheDocument();
-  });
-
-  it("template モードのとき BookIcon が表示され DashboardIcon は表示されない", () => {
-    useUiStore.setState({ mode: "template" });
+  it("全モードのアイコンが常に表示される", () => {
     render(<Sidebar />);
     expect(screen.getByTestId("BookIcon")).toBeInTheDocument();
-    expect(screen.queryByTestId("DashboardIcon")).not.toBeInTheDocument();
+    expect(screen.getByTestId("DashboardIcon")).toBeInTheDocument();
+    expect(screen.getByTestId("SearchIcon")).toBeInTheDocument();
+  });
+
+  it("diary モードのとき BookIcon ボタンが disabled になる", () => {
+    render(<Sidebar />);
+    expect(screen.getByTestId("BookIcon").closest("button")).toBeDisabled();
+  });
+
+  it("template モードのとき DashboardIcon ボタンが disabled になる", () => {
+    useUiStore.setState({ mode: "template" });
+    render(<Sidebar />);
+    expect(screen.getByTestId("DashboardIcon").closest("button")).toBeDisabled();
+  });
+
+  it("search モードのとき SearchIcon ボタンが disabled になる", () => {
+    useUiStore.setState({ mode: "search" });
+    render(<Sidebar />);
+    expect(screen.getByTestId("SearchIcon").closest("button")).toBeDisabled();
   });
 
   it("DashboardIcon ボタンをクリックすると template モードになる", async () => {
@@ -57,5 +68,11 @@ describe("モード切り替えボタン", () => {
     render(<Sidebar />);
     await userEvent.click(screen.getByTestId("BookIcon").closest("button")!);
     expect(useUiStore.getState().mode).toBe("diary");
+  });
+
+  it("SearchIcon ボタンをクリックすると search モードになる", async () => {
+    render(<Sidebar />);
+    await userEvent.click(screen.getByTestId("SearchIcon").closest("button")!);
+    expect(useUiStore.getState().mode).toBe("search");
   });
 });

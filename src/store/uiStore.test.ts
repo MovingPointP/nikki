@@ -19,4 +19,9 @@ describe("setMode", () => {
     useUiStore.getState().setMode("template");
     expect(useUiStore.getState().mode).toBe("template");
   });
+
+  it("search に切り替えると mode が search になる", () => {
+    useUiStore.getState().setMode("search");
+    expect(useUiStore.getState().mode).toBe("search");
+  });
 });
