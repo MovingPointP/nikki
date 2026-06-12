@@ -26,6 +26,9 @@ export default function TagSearchPreviewPane() {
 
   // ── ホバー時のファイル読み込み ────────────────────────
   useEffect(() => {
+    // active フラグでレースコンディションを防ぐ
+    // hoveredDate が素早く切り替わった場合に古い非同期結果を無視する
+    let active = true;
     if (!hoveredDate || !savePath) {
       setTags([]);
       setPreviewContent("");
@@ -35,15 +38,20 @@ export default function TagSearchPreviewPane() {
       try {
         const filePath = await join(savePath, DIARY_DIR, `${hoveredDate}.md`);
         const raw = await readTextFile(filePath);
+        if (!active) return;
         const { frontmatter, content } = splitFrontmatter(raw);
         setTags(parseTags(frontmatter));
         setPreviewContent(content);
       } catch {
+        if (!active) return;
         setTags([]);
         setPreviewContent("");
       }
     };
     load();
+    return () => {
+      active = false;
+    };
   }, [hoveredDate, savePath]);
 
   return (
