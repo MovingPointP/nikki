@@ -16,6 +16,8 @@ const iconButtonSx = {
   borderRadius: 0,
   color: "text.dark",
   "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+  // disabled 時は通常色を維持しつつ半透明にして非アクティブを表現する
+  "&.Mui-disabled": { color: "rgba(240,242,189,0.35)" },
 } as const;
 
 // ────────────────────────────────────────────
