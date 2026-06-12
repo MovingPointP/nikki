@@ -3,6 +3,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BookIcon from "@mui/icons-material/Book";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import SearchIcon from "@mui/icons-material/Search";
 import { useModalStore } from "../../store/modalStore";
 import { useUiStore } from "../../store/uiStore";
 
@@ -32,19 +33,32 @@ export default function Sidebar() {
         <CalendarMonthIcon sx={{ fontSize: 28 }} />
       </IconButton>
 
-      {/* 日記モード切り替えボタン（template モード時のみ表示） */}
-      {mode === "template" && (
-        <IconButton sx={iconButtonSx} onClick={() => useUiStore.getState().setMode("diary")}>
-          <BookIcon sx={{ fontSize: 28 }} />
-        </IconButton>
-      )}
+      {/* 日記モードボタン（diary モード中は非アクティブ） */}
+      <IconButton
+        sx={iconButtonSx}
+        disabled={mode === "diary"}
+        onClick={() => useUiStore.getState().setMode("diary")}
+      >
+        <BookIcon sx={{ fontSize: 28 }} />
+      </IconButton>
 
-      {/* テンプレートモード切り替えボタン（diary モード時のみ表示） */}
-      {mode === "diary" && (
-        <IconButton sx={iconButtonSx} onClick={() => useUiStore.getState().setMode("template")}>
-          <DashboardIcon sx={{ fontSize: 28 }} />
-        </IconButton>
-      )}
+      {/* テンプレートモードボタン（template モード中は非アクティブ） */}
+      <IconButton
+        sx={iconButtonSx}
+        disabled={mode === "template"}
+        onClick={() => useUiStore.getState().setMode("template")}
+      >
+        <DashboardIcon sx={{ fontSize: 28 }} />
+      </IconButton>
+
+      {/* 検索モードボタン（search モード中は非アクティブ） */}
+      <IconButton
+        sx={iconButtonSx}
+        disabled={mode === "search"}
+        onClick={() => useUiStore.getState().setMode("search")}
+      >
+        <SearchIcon sx={{ fontSize: 28 }} />
+      </IconButton>
 
       {/* 設定ボタン */}
       <IconButton sx={{ ...iconButtonSx, mt: "auto" }} onClick={() => useModalStore.getState().openModal("settings")}>
