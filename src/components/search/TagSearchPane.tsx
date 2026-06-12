@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Box, Chip, List, ListItemButton, Typography } from "@mui/material";
 import { useDailyStore } from "../../store/dailyStore";
 import { useUiStore } from "../../store/uiStore";
@@ -15,9 +16,11 @@ export default function TagSearchPane() {
   const tagIndex   = useDailyStore((s) => s.tagIndex);
   const selectedTag = useSearchStore((s) => s.selectedTag);
 
-  const allTags = Object.keys(tagIndex).sort();
+  const allTags = useMemo(() => Object.keys(tagIndex).sort(), [tagIndex]);
   // 選択中タグに対応する日付一覧（新しい順）
-  const matchedDates = selectedTag ? [...(tagIndex[selectedTag] ?? [])].reverse() : [];
+  const matchedDates = useMemo(() => {
+    return selectedTag ? [...(tagIndex[selectedTag] ?? [])].reverse() : [];
+  }, [selectedTag, tagIndex]);
 
   // ── 日記を開く ────────────────────────
   const handleDateClick = (dateStr: string) => {
