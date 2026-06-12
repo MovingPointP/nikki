@@ -4,6 +4,8 @@ import EditorPane from "../diary/EditorPane";
 import PreviewPane from "../diary/PreviewPane";
 import TemplateEditorPane from "../template/TemplateEditorPane";
 import TemplatePreviewPane from "../template/TemplatePreviewPane";
+import TagSearchPane from "../search/TagSearchPane";
+import TagSearchPreviewPane from "../search/TagSearchPreviewPane";
 import Sidebar from "./Sidebar";
 import SettingsModal from "../settings/SettingsModal";
 import CalendarModal from "../calendar/CalendarModal";
@@ -85,7 +87,7 @@ export default function MainLayout() {
 
         {/* エディタペイン（幅を動的に制御） */}
         <Box data-editor-width={editorWidthPct} sx={{ flex: "none", width: `${editorWidthPct}%`, display: "flex", minHeight: 0 }}>
-          {mode === "diary" ? <EditorPane /> : <TemplateEditorPane />}
+          {mode === "diary" ? <EditorPane /> : mode === "template" ? <TemplateEditorPane /> : <TagSearchPane />}
         </Box>
 
         {/* ドラッグ可能なリサイズハンドル */}
@@ -93,7 +95,7 @@ export default function MainLayout() {
 
         {/* プレビューペイン（残りの幅を占める） */}
         <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
-          {mode === "diary" ? <PreviewPane /> : <TemplatePreviewPane />}
+          {mode === "diary" ? <PreviewPane /> : mode === "template" ? <TemplatePreviewPane /> : <TagSearchPreviewPane />}
         </Box>
 
       </Box>
