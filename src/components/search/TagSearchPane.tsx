@@ -32,7 +32,7 @@ export default function TagSearchPane() {
     <PaneContainer>
       <PaneHeader>
         <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
-          タグで検索
+          タグ検索
         </Typography>
       </PaneHeader>
 
