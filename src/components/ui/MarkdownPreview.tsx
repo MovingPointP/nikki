@@ -1,7 +1,9 @@
 import { Box } from "@mui/material";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MARKDOWN_STYLES } from "../../constants/markdownStyles";
+
 // ────────────────────────────────────────────
 // 型定義
 // ────────────────────────────────────────────
@@ -12,8 +14,42 @@ interface Props {
 }
 
 // ────────────────────────────────────────────
+// ユーティリティ
+// ────────────────────────────────────────────
+
+// ローカルパスを Tauri の asset:// URL に変換する。
+// http(s):// はそのまま返す。
+function resolveImageSrc(src: string): string {
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    return src;
+  }
+  // file:///C:/... (Windows) → C:/...
+  // file:///home/... (Unix) → /home/...
+  if (src.startsWith("file://")) {
+    let path = src.slice("file://".length);
+    // Windows: /C:/... → C:/...
+    if (/^\/[A-Za-z]:/.test(path)) path = path.slice(1);
+    return convertFileSrc(decodeURIComponent(path));
+  }
+  // 絶対パス（Unix / Windows どちらも）
+  if (src.startsWith("/") || /^[A-Za-z]:[\\/]/.test(src)) {
+    return convertFileSrc(src);
+  }
+  return src;
+}
+
+// ────────────────────────────────────────────
 // コンポーネント
 // ────────────────────────────────────────────
+
+// img タグのカスタムレンダラー。ローカルパスを asset:// に変換して表示する
+function ImageRenderer({
+  src,
+  alt,
+}: React.ImgHTMLAttributes<HTMLImageElement>) {
+  const resolvedSrc = src ? resolveImageSrc(src) : undefined;
+  return <img src={resolvedSrc} alt={alt} style={{ maxWidth: "100%" }} />;
+}
 
 // Markdownを整形表示するプレビュー領域。content が空の場合は何も表示しない
 export default function MarkdownPreview({ content }: Props) {
@@ -30,7 +66,10 @@ export default function MarkdownPreview({ content }: Props) {
       }}
     >
       {content && (
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{ img: ImageRenderer }}
+        >
           {content}
         </ReactMarkdown>
       )}
