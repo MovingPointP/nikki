@@ -69,6 +69,14 @@ export default function MarkdownPreview({ content }: Props) {
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{ img: ImageRenderer }}
+          // 許可するスキームをホワイトリストで管理する
+          urlTransform={(url) => {
+            if (/^https?:\/\//.test(url)) return url;       // Web URL
+            if (url.startsWith("file://")) return url;       // file:// URL
+            if (url.startsWith("/") || /^[A-Za-z]:[\\/]/.test(url)) return url; // 絶対パス
+            if (!url.includes(":")) return url;              // 相対パス
+            return "";
+          }}
         >
           {content}
         </ReactMarkdown>
