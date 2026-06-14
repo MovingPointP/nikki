@@ -28,8 +28,12 @@ function resolveImageSrc(src: string): string {
   if (src.startsWith("file://")) {
     let path = src.slice("file://".length);
     // Windows: /C:/... → C:/...
-    if (/^\/[A-Za-z]:/.test(path)) path = path.slice(1);
-    return convertFileSrc(decodeURIComponent(path));
+    try {
+      path = decodeURIComponent(path);
+    } catch {
+      // 不正なパーセントエンコードはデコードせずそのまま使用する
+    }
+    return convertFileSrc(path);
   }
   // 絶対パス（Unix / Windows どちらも）
   if (src.startsWith("/") || /^[A-Za-z]:[\\/]/.test(src)) {
