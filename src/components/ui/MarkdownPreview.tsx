@@ -46,9 +46,18 @@ function resolveImageSrc(src: string): string {
 function ImageRenderer({
   src,
   alt,
+  style,
+  ...props
 }: React.ImgHTMLAttributes<HTMLImageElement>) {
   const resolvedSrc = src ? resolveImageSrc(src) : undefined;
-  return <img src={resolvedSrc} alt={alt} style={{ maxWidth: "100%" }} />;
+  return (
+    <img
+      src={resolvedSrc}
+      alt={alt}
+      style={{ maxWidth: "100%", ...style }}
+      {...props}
+    />
+  );
 }
 
 // Markdownを整形表示するプレビュー領域。content が空の場合は何も表示しない
