@@ -14,13 +14,21 @@ interface Props {
 }
 
 // ────────────────────────────────────────────
+// 定数
+// ────────────────────────────────────────────
+
+const RE_HTTP    = /^https?:\/\//;
+const RE_WIN_DRV = /^[A-Za-z]:[\\/]/;
+const RE_WIN_ABS = /^\/[A-Za-z]:/;
+
+// ────────────────────────────────────────────
 // ユーティリティ
 // ────────────────────────────────────────────
 
 // ローカルパスを Tauri の asset:// URL に変換する。
 // http(s):// はそのまま返す。
 function resolveImageSrc(src: string): string {
-  if (src.startsWith("http://") || src.startsWith("https://")) {
+  if (RE_HTTP.test(src)) {
     return src;
   }
   // file:///C:/... (Windows) → C:/...
@@ -28,6 +36,7 @@ function resolveImageSrc(src: string): string {
   if (src.startsWith("file://")) {
     let path = src.slice("file://".length);
     // Windows: /C:/... → C:/...
+    if (RE_WIN_ABS.test(path)) path = path.slice(1);
     try {
       path = decodeURIComponent(path);
     } catch {
@@ -36,7 +45,7 @@ function resolveImageSrc(src: string): string {
     return convertFileSrc(path);
   }
   // 絶対パス（Unix / Windows どちらも）
-  if (src.startsWith("/") || /^[A-Za-z]:[\\/]/.test(src)) {
+  if (src.startsWith("/") || RE_WIN_DRV.test(src)) {
     return convertFileSrc(src);
   }
   return src;
@@ -84,10 +93,10 @@ export default function MarkdownPreview({ content }: Props) {
           components={{ img: ImageRenderer }}
           // 許可するスキームをホワイトリストで管理する
           urlTransform={(url) => {
-            if (/^https?:\/\//.test(url)) return url;       // Web URL
-            if (url.startsWith("file://")) return url;       // file:// URL
-            if (url.startsWith("/") || /^[A-Za-z]:[\\/]/.test(url)) return url; // 絶対パス
-            if (!url.includes(":")) return url;              // 相対パス
+            if (RE_HTTP.test(url)) return url;                             // Web URL
+            if (url.startsWith("file://")) return url;                     // file:// URL
+            if (url.startsWith("/") || RE_WIN_DRV.test(url)) return url;  // 絶対パス
+            if (!url.includes(":")) return url;                            // 相対パス
             return "";
           }}
         >
